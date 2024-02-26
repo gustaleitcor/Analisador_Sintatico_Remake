@@ -32,37 +32,40 @@ public:
   std::vector<Token> tokens;
   bool analyse();
   void saveToFile(std::string);
+  TOKEN_ITERATOR token;
 
-  bool program(TOKEN_ITERATOR &token);
+  void next();
 
-  bool variable_declaration(TOKEN_ITERATOR &token);
-  bool variable_declaration_list(TOKEN_ITERATOR &token);
-  bool variable_declaration_list2(TOKEN_ITERATOR &token);
-  bool identifiers_list(TOKEN_ITERATOR &token);
-  bool identifiers_list2(TOKEN_ITERATOR &token);
-  bool type(TOKEN_ITERATOR &token);
+  bool program();
 
-  bool subprogram_declaration(TOKEN_ITERATOR &token);
-  bool subprograms_declarations(TOKEN_ITERATOR &token);
-  bool subprograms_declarations2(TOKEN_ITERATOR &token);
-  bool arguments(TOKEN_ITERATOR &token);
-  bool parameters_list(TOKEN_ITERATOR &token);
-  bool parameters_list2(TOKEN_ITERATOR &token);
-  bool compost_command(TOKEN_ITERATOR &token);
-  bool optinals_command(TOKEN_ITERATOR &token);
-  bool command_list(TOKEN_ITERATOR &token);
-  bool command_list2(TOKEN_ITERATOR &token);
-  bool command(TOKEN_ITERATOR &token);
-  bool expression(TOKEN_ITERATOR &token);
-  bool simple_expression(TOKEN_ITERATOR &token);
-  bool simple_expression2(TOKEN_ITERATOR &token);
-  bool term(TOKEN_ITERATOR &token);
-  bool term2(TOKEN_ITERATOR &token);
-  bool factor(TOKEN_ITERATOR &token);
-  bool expression_list(TOKEN_ITERATOR &token);
-  bool expression_list2(TOKEN_ITERATOR &token);
-  bool else_part(TOKEN_ITERATOR &token);
-  bool procedure_activation(TOKEN_ITERATOR &token);
+  bool variable_declaration();
+  bool variable_declaration_list();
+  bool variable_declaration_list2();
+  bool identifiers_list();
+  bool identifiers_list2();
+  bool type();
+
+  bool subprogram_declaration();
+  bool subprograms_declarations();
+  bool subprograms_declarations2();
+  bool arguments();
+  bool parameters_list();
+  bool parameters_list2();
+  bool compost_command();
+  bool optinals_command();
+  bool command_list();
+  bool command_list2();
+  bool command();
+  bool expression();
+  bool simple_expression();
+  bool simple_expression2();
+  bool term();
+  bool term2();
+  bool factor();
+  bool expression_list();
+  bool expression_list2();
+  bool else_part();
+  bool procedure_activation();
 };
 
 Type stringToType(std::string s);

@@ -2,6 +2,7 @@
 #include <exception>
 #include <iostream>
 #include <list>
+#include <unistd.h>
 #include <vector>
 
 /*
@@ -20,27 +21,36 @@ if(this->tokens[control] == "program"){
 }
 
 */
+std::string typeToString(Type t);
+Type stringToType(std::string s);
 
 void Sintatico::saveToFile(std::string){};
 
+void Sintatico::next() {
+  this->token++;
+  std::cout << typeToString(this->token->type) << ' ' << this->token->name
+            << std::endl;
+}
+
 bool Sintatico::analyse() {
-  TOKEN_ITERATOR token = this->tokens.begin();
-  return this->program(token);
+  token = this->tokens.begin();
+  return this->program();
 };
 
-bool Sintatico::program(TOKEN_ITERATOR &token) {
+bool Sintatico::program() {
+  std::cout << "### program" << std::endl;
   if (token->name == "program") {
-    token++;
+    next();
     if (token->type == Type::IDENTIFIER) {
-      token++;
+      next();
       if (token->name == ";") {
-        token++;
-        if (variable_declaration(token)) {
-          token++;
-          if (subprograms_declarations(token)) {
-            token++;
-            if (compost_command(token)) {
-              token++;
+        next();
+        if (variable_declaration()) {
+          next();
+          if (subprograms_declarations()) {
+            next();
+            if (compost_command()) {
+              next();
               if (token->name == ".") {
                 return true;
               }
@@ -54,10 +64,11 @@ bool Sintatico::program(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::variable_declaration(TOKEN_ITERATOR &token) {
+bool Sintatico::variable_declaration() {
+  std::cout << "### variable_declaration" << std::endl;
   if (token->name == "var") {
-    token++;
-    if (variable_declaration_list(token)) {
+    next();
+    if (variable_declaration_list()) {
       return true;
     }
   }
@@ -65,16 +76,17 @@ bool Sintatico::variable_declaration(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::variable_declaration_list(TOKEN_ITERATOR &token) {
-  if (identifiers_list(token)) {
-    token++;
+bool Sintatico::variable_declaration_list() {
+  std::cout << "### variable_declaration_list" << std::endl;
+  if (identifiers_list()) {
+    next();
     if (token->name == ":") {
-      token++;
-      if (type(token)) {
-        token++;
+      next();
+      if (type()) {
+        next();
         if (token->name == ";") {
-          token++;
-          if (variable_declaration_list2(token)) {
+          next();
+          if (variable_declaration_list2()) {
             return true;
           }
         }
@@ -84,16 +96,17 @@ bool Sintatico::variable_declaration_list(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::variable_declaration_list2(TOKEN_ITERATOR &token) {
-  if (identifiers_list(token)) {
-    token++;
+bool Sintatico::variable_declaration_list2() {
+  std::cout << "### variable_declaration_list2" << std::endl;
+  if (identifiers_list()) {
+    next();
     if (token->name == ":") {
-      token++;
-      if (type(token)) {
-        token++;
+      next();
+      if (type()) {
+        next();
         if (token->name == ";") {
-          token++;
-          if (variable_declaration_list2(token)) {
+          next();
+          if (variable_declaration_list2()) {
             return true;
           }
         }
@@ -103,22 +116,24 @@ bool Sintatico::variable_declaration_list2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::identifiers_list(TOKEN_ITERATOR &token) {
+bool Sintatico::identifiers_list() {
+  std::cout << "### identifiers_list" << std::endl;
   if (token->type == Type::IDENTIFIER) {
-    token++;
-    if (identifiers_list2(token)) {
+    next();
+    if (identifiers_list2()) {
       return true;
     }
   }
   return false;
 }
 
-bool Sintatico::identifiers_list2(TOKEN_ITERATOR &token) {
-  if (token->name == ";") {
-    token++;
+bool Sintatico::identifiers_list2() {
+  std::cout << "### identifiers_list2" << std::endl;
+  if (token->name == ",") {
+    next();
     if (token->type == Type::IDENTIFIER) {
-      token++;
-      if (identifiers_list2(token)) {
+      next();
+      if (identifiers_list2()) {
         return true;
       }
     }
@@ -126,7 +141,8 @@ bool Sintatico::identifiers_list2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::type(TOKEN_ITERATOR &token) {
+bool Sintatico::type() {
+  std::cout << "### type" << std::endl;
   if (token->type == token->type == Type::INTEGER ||
       token->type == Type::REAL || token->type == Type::BOOLEAN) {
     return true;
@@ -134,19 +150,21 @@ bool Sintatico::type(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::subprograms_declarations(TOKEN_ITERATOR &token) {
-  if (subprograms_declarations2(token)) {
+bool Sintatico::subprograms_declarations() {
+  std::cout << "### subprograms_declarations" << std::endl;
+  if (subprograms_declarations2()) {
     return true;
   }
   return false;
 }
 
-bool Sintatico::subprograms_declarations2(TOKEN_ITERATOR &token) {
-  if (subprogram_declaration(token)) {
-    token++;
+bool Sintatico::subprograms_declarations2() {
+  std::cout << "### subprograms_declarations2" << std::endl;
+  if (subprogram_declaration()) {
+    next();
     if (token->name == ";") {
-      token++;
-      if (subprograms_declarations2(token)) {
+      next();
+      if (subprograms_declarations2()) {
         return true;
       }
     }
@@ -154,18 +172,19 @@ bool Sintatico::subprograms_declarations2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::subprogram_declaration(TOKEN_ITERATOR &token) {
+bool Sintatico::subprogram_declaration() {
+  std::cout << "### subprogram_declaration" << std::endl;
   if (token->name == "procedure") {
-    token++;
+    next();
     if (token->type == Type::IDENTIFIER) {
-      token++;
-      if (arguments(token)) {
-        token++;
-        if (variable_declaration(token)) {
-          token++;
-          if (subprograms_declarations(token)) {
-            token++;
-            if (compost_command(token)) {
+      next();
+      if (arguments()) {
+        next();
+        if (variable_declaration()) {
+          next();
+          if (subprograms_declarations()) {
+            next();
+            if (compost_command()) {
               return true;
             }
           }
@@ -176,24 +195,26 @@ bool Sintatico::subprogram_declaration(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::arguments(TOKEN_ITERATOR &token) {
+bool Sintatico::arguments() {
+  std::cout << "### arguments" << std::endl;
   if (token->name == "(") {
-    token++;
-    if (parameters_list(token)) {
+    next();
+    if (parameters_list()) {
       return true;
     }
   }
   return true;
 }
 
-bool Sintatico::parameters_list(TOKEN_ITERATOR &token) {
-  if (identifiers_list(token)) {
-    token++;
+bool Sintatico::parameters_list() {
+  std::cout << "### parameters_list" << std::endl;
+  if (identifiers_list()) {
+    next();
     if (token->name == ":") {
-      token++;
-      if (type(token)) {
-        token++;
-        if (parameters_list2(token)) {
+      next();
+      if (type()) {
+        next();
+        if (parameters_list2()) {
           return true;
         }
       }
@@ -202,16 +223,17 @@ bool Sintatico::parameters_list(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::parameters_list2(TOKEN_ITERATOR &token) {
+bool Sintatico::parameters_list2() {
+  std::cout << "### parameters_list2" << std::endl;
   if (token->name == ";") {
-    token++;
-    if (identifiers_list(token)) {
-      token++;
+    next();
+    if (identifiers_list()) {
+      next();
       if (token->name == ":") {
-        token++;
-        if (type(token)) {
-          token++;
-          if (parameters_list2(token)) {
+        next();
+        if (type()) {
+          next();
+          if (parameters_list2()) {
             return true;
           }
         }
@@ -221,11 +243,12 @@ bool Sintatico::parameters_list2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::compost_command(TOKEN_ITERATOR &token) {
+bool Sintatico::compost_command() {
+  std::cout << "### compost_command" << std::endl;
   if (token->name == "begin") {
-    token++;
-    if (optinals_command(token)) {
-      token++;
+    next();
+    if (optinals_command()) {
+      next();
       if (token->name == "end") {
         return true;
       }
@@ -234,29 +257,32 @@ bool Sintatico::compost_command(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::optinals_command(TOKEN_ITERATOR &token) {
-  if (command_list(token)) {
+bool Sintatico::optinals_command() {
+  std::cout << "### optinals_command" << std::endl;
+  if (command_list()) {
     return true;
   }
   return true;
 }
 
-bool Sintatico::command_list(TOKEN_ITERATOR &token) {
-  if (command(token)) {
-    token++;
-    if (command_list2(token)) {
+bool Sintatico::command_list() {
+  std::cout << "### command_list" << std::endl;
+  if (command()) {
+    next();
+    if (command_list2()) {
       return true;
     }
   }
   return false;
 }
 
-bool Sintatico::command_list2(TOKEN_ITERATOR &token) {
+bool Sintatico::command_list2() {
+  std::cout << "### command_list2" << std::endl;
   if (token->name == ";") {
-    token++;
-    if (command(token)) {
-      token++;
-      if (command_list2(token)) {
+    next();
+    if (command()) {
+      next();
+      if (command_list2()) {
         return true;
       }
     }
@@ -264,67 +290,70 @@ bool Sintatico::command_list2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::command(TOKEN_ITERATOR &token) {
+bool Sintatico::command() {
+  std::cout << "### command" << std::endl;
+
   if (token->type == Type::IDENTIFIER) {
-    token++;
+    next();
     if (token->name == ":=") {
-      token++;
-      if (expression(token)) {
-        token++;
-        if (procedure_activation(token)) {
-          return true;
-        } else if (compost_command(token)) {
-          return true;
-        } else if (token->name == "if") {
-          token++;
-          if (expression(token)) {
-            token++;
-            if (token->name == "then") {
-              token++;
-              if (command(token)) {
-                token++;
-                if (else_part(token)) {
-                  return true;
-                }
-              }
-            }
-          }
-        } else if (token->name == "while") {
-          token++;
-          if (expression(token)) {
-            token++;
-            if (token->name == "do") {
-              token++;
-              if (command(token)) {
-                return true;
-              }
-            }
+      next();
+      if (expression()) {
+        return true;
+      }
+    }
+  } else if (procedure_activation()) {
+    return true;
+  } else if (compost_command()) {
+    return true;
+  } else if (token->name == "if") {
+    next();
+    if (expression()) {
+      next();
+      if (token->name == "then") {
+        next();
+        if (command()) {
+          next();
+          if (else_part()) {
+            return true;
           }
         }
       }
     }
+  } else if (token->name == "while") {
+    next();
+    if (expression()) {
+      next();
+      if (token->name == "do") {
+        next();
+        if (command()) {
+          return true;
+        }
+      }
+    }
   }
+
   return false;
 }
 
-bool Sintatico::else_part(TOKEN_ITERATOR &token) {
+bool Sintatico::else_part() {
+  std::cout << "### else_part" << std::endl;
   if (token->name == "else") {
-    token++;
-    if (command(token)) {
+    next();
+    if (command()) {
       return true;
     }
   }
   return true;
 }
 
-bool Sintatico::procedure_activation(
-    TOKEN_ITERATOR &token) { // OLHAR DPS ACHO Q TA ERRADO
+bool Sintatico::procedure_activation() { // OLHAR DPS ACHO Q TA ERRADO
+  std::cout << "### procedure_activation" << std::endl;
   if (token->type == Type::IDENTIFIER) {
-    token++;
+    next();
     if (token->name == "(") {
-      token++;
-      if (expression_list(token)) {
-        token++;
+      next();
+      if (expression_list()) {
+        next();
         if (token->name == ")") {
           return true;
         }
@@ -336,22 +365,24 @@ bool Sintatico::procedure_activation(
   return false;
 }
 
-bool Sintatico::expression_list(TOKEN_ITERATOR &token) {
-  if (expression(token)) {
-    token++;
-    if (expression_list2(token)) {
+bool Sintatico::expression_list() {
+  std::cout << "### expression_list" << std::endl;
+  if (expression()) {
+    next();
+    if (expression_list2()) {
       return true;
     }
   }
   return false;
 }
 
-bool Sintatico::expression_list2(TOKEN_ITERATOR &token) {
+bool Sintatico::expression_list2() {
+  std::cout << "### expression_list2" << std::endl;
   if (token->name == ";") {
-    token++;
-    if (expression(token)) {
-      token++;
-      if (expression_list2(token)) {
+    next();
+    if (expression()) {
+      next();
+      if (expression_list2()) {
         return true;
       }
     }
@@ -359,30 +390,34 @@ bool Sintatico::expression_list2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::expression(TOKEN_ITERATOR &token) {
-  if (expression_list(token)) {
-    token++;
+bool Sintatico::expression() {
+  std::cout << "### expression" << std::endl;
+  if (simple_expression()) {
+    next();
     if (token->type == Type::RELACIONAL_OPERATOR) {
-      token++;
-      if (simple_expression(token)) {
+      next();
+      if (simple_expression()) {
         return true;
       }
+    } else {
+      return true;
     }
   }
   return false;
 }
 
-bool Sintatico::simple_expression(TOKEN_ITERATOR &token) {
-  if (term(token)) {
-    token++;
-    if (simple_expression2(token)) {
+bool Sintatico::simple_expression() {
+  std::cout << "### simple_expression" << std::endl;
+  if (term()) {
+    next();
+    if (simple_expression2()) {
       return true;
     }
   } else if (token->name == "-" || token->name == "+") {
-    token++;
-    if (term(token)) {
-      token++;
-      if (simple_expression2(token)) {
+    next();
+    if (term()) {
+      next();
+      if (simple_expression2()) {
         return true;
       }
     }
@@ -390,12 +425,13 @@ bool Sintatico::simple_expression(TOKEN_ITERATOR &token) {
   return false;
 }
 
-bool Sintatico::simple_expression2(TOKEN_ITERATOR &token) {
+bool Sintatico::simple_expression2() {
+  std::cout << "### simple_expression2" << std::endl;
   if (token->name == "-" || token->name == "+" || token->name == "or") {
-    token++;
-    if (term(token)) {
-      token++;
-      if (simple_expression2(token)) {
+    next();
+    if (term()) {
+      next();
+      if (simple_expression2()) {
         return true;
       }
     }
@@ -403,22 +439,24 @@ bool Sintatico::simple_expression2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::term(TOKEN_ITERATOR &token) {
-  if (factor(token)) {
-    token++;
-    if (term2(token)) {
+bool Sintatico::term() {
+  std::cout << "### term" << std::endl;
+  if (factor()) {
+    next();
+    if (term2()) {
       return true;
     }
   }
   return false;
 }
 
-bool Sintatico::term2(TOKEN_ITERATOR &token) {
+bool Sintatico::term2() {
+  std::cout << "### term2" << std::endl;
   if (token->name == "*" || token->name == "/" || token->name == "and") {
-    token++;
-    if (factor(token)) {
-      token++;
-      if (term2(token)) {
+    next();
+    if (factor()) {
+      next();
+      if (term2()) {
         return true;
       }
     }
@@ -426,13 +464,14 @@ bool Sintatico::term2(TOKEN_ITERATOR &token) {
   return true;
 }
 
-bool Sintatico::factor(TOKEN_ITERATOR &token) {
+bool Sintatico::factor() {
+  std::cout << "### factor" << std::endl;
   if (token->type == Type::IDENTIFIER) {
-    token++;
+    next();
     if (token->name == "(") {
-      token++;
-      if (expression_list(token)) {
-        token++;
+      next();
+      if (expression_list()) {
+        next();
         if (token->name == ")") {
           return true;
         }
@@ -440,16 +479,22 @@ bool Sintatico::factor(TOKEN_ITERATOR &token) {
     } else {
       return true;
     }
-  } else if (token->type == Type::IDENTIFIER) {
+  } else if (token->type == Type::INTEGER) {
     return true;
   } else if (token->type == Type::REAL) {
     return true;
   } else if (token->type == Type::BOOLEAN) {
     return true;
-  } else if (expression(token)) {
-    return true;
+  } else if (token->name == "(") {
+    if (expression()) {
+      if (token->name == ")") {
+        return true;
+      }
+    }
   } else if (token->name == "not") {
-    return true;
+    if (factor()) {
+      return true;
+    }
   }
   return false;
 }
@@ -474,6 +519,29 @@ Type stringToType(std::string s) {
   } else if (s == "ASSIGN") {
     return Type::ASSIGN;
   }
+  throw std::exception();
+}
 
+std::string typeToString(Type t) {
+
+  if (t == Type::REAL) {
+    return "REAL";
+  } else if (t == Type::INTEGER) {
+    return "INTEGER";
+  } else if (t == Type::RELACIONAL_OPERATOR) {
+    return "RELACIONAL_OPERATOR";
+  } else if (t == Type::LOGICAL_OPERATOR) {
+    return "LOGICAL_OPERATOR";
+  } else if (t == Type::OPERATOR) {
+    return "OPERATOR";
+  } else if (t == Type::KEYWORD) {
+    return "KEYWORD";
+  } else if (t == Type::IDENTIFIER) {
+    return "IDENTIFIER";
+  } else if (t == Type::DELIMITER) {
+    return "DELIMITER";
+  } else if (t == Type::ASSIGN) {
+    return "ASSIGN";
+  }
   throw std::exception();
 }
