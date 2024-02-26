@@ -35,6 +35,7 @@ public:
   TOKEN_ITERATOR token;
 
   void next();
+  Token peek();
 
   bool program();
 

@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
-int main() {
+int main(int argc, char *argv[]) {
 
   std::string token, type, line_str;
   unsigned long line_ul;
-  std::ifstream input_file("analysed/Test1.txt");
+  std::ifstream input_file(argv[1]);
   Sintatico sintatico;
 
   while (input_file >> type) {
@@ -21,9 +21,13 @@ int main() {
         (Token){.type = stringToType(type), .name = token, .line = line_ul});
   }
 
-  if (sintatico.analyse()) {
-    std::cout << "Programa correto" << std::endl;
-  } else {
+  try {
+    if (sintatico.analyse()) {
+      std::cout << "Programa correto" << std::endl;
+    } else {
+      std::cout << "Programa incorreto" << std::endl;
+    }
+  } catch (...) {
     std::cout << "Programa incorreto" << std::endl;
   }
 
