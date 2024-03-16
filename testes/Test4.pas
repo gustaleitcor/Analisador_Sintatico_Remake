@@ -2,11 +2,11 @@ program Test4;
 var
    A, B, R, I : integer;
 
-procedure teste (A:integer, B:real);
+ & procedure teste (A:integer, B:real);
 var
    S,X: real;
 begin
-   S := A + B * X;
+   S := A + B * X + 4 / 4;
 end; {verifique se é necessário um ";" no fechamento de um procedimento}
 
 begin

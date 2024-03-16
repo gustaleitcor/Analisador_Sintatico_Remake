@@ -32,7 +32,7 @@ void Sintatico::next() {
     throw std::exception();
   }
   // std::cout << typeToString(this->token->type) << ' ' << this->token->name
-  //           << std::endl;
+  //           //<< std::endl;
 }
 
 Token Sintatico::peek() {
@@ -49,7 +49,7 @@ bool Sintatico::analyse() {
 };
 
 bool Sintatico::program() {
-  std::cout << token->name << ' ' << "### program" << std::endl;
+  // std::cout << token->name << ' ' << "### program" //<< std::endl;
   if (token->name == "program") {
     next();
     if (token->type == Type::IDENTIFIER) {
@@ -58,49 +58,54 @@ bool Sintatico::program() {
         next();
         if (variable_declaration()) {
           if (subprograms_declarations()) {
-            std::cout << token->name << "--------" << std::endl;
+            /// std::cout << token->name
+            // << "--------" //<< std::endl;
             if (compost_command()) {
               next();
               if (token->name == ".") {
                 return true;
               } else {
-                std::cout << "Expected '.' in line: " << token->line
-                          << std::endl;
+                // std::cout << "Expected '.' in line: " << token->line
+                //<< std::endl;
               }
             }
           }
         }
       } else {
-        std::cout << "Expected ';' in line: " << token->line << std::endl;
+        // std::cout << "Expected ';' in line: " << token->line //<< std::endl;
       }
     } else {
-      std::cout << "Expected 'IDENTIFIER' in line: " << token->line
-                << std::endl;
+      // std::cout << "Expected 'IDENTIFIER' in line: " << token->line
+      //<< std::endl;
     }
   } else {
-    std::cout << "Expected 'program' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'program' in line: " << token->line //<<
+    // std::endl;
   }
 
   return false;
 }
 
 bool Sintatico::variable_declaration() {
-  std::cout << token->name << ' ' << "### variable_declaration" << std::endl;
+  /// //std::cout << token->name << ' ' << "### variable_declaration" <<
+  /// std::endl;
   if (token->name == "var") {
     next();
     if (variable_declaration_list()) {
       return true;
+    } else {
+      return false;
     }
   } else {
-    std::cout << "Expected 'var' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'var' in line: " << token->line //<< std::endl;
   }
 
   return true;
 }
 
 bool Sintatico::variable_declaration_list() {
-  std::cout << token->name << ' ' << "### variable_declaration_list"
-            << std::endl;
+  ////std::cout << token->name << ' ' << "### variable_declaration_list"
+  //        //<< std::endl;
   if (identifiers_list()) {
     if (token->name == ":") {
       next();
@@ -112,7 +117,8 @@ bool Sintatico::variable_declaration_list() {
             return true;
           }
         } else {
-          std::cout << "Expected ';' in line: " << token->line << std::endl;
+          std::cout << "Expected ';' in line: " << (token - 1)->line
+                    << std::endl;
         }
       }
     } else {
@@ -123,8 +129,8 @@ bool Sintatico::variable_declaration_list() {
 }
 
 bool Sintatico::variable_declaration_list2() {
-  std::cout << token->name << ' ' << "### variable_declaration_list2"
-            << std::endl;
+  ////std::cout << token->name << ' ' << "### variable_declaration_list2"
+  //        //<< std::endl;
   if (identifiers_list()) {
     if (token->name == ":") {
       next();
@@ -136,31 +142,33 @@ bool Sintatico::variable_declaration_list2() {
             return true;
           }
         } else {
-          std::cout << "Expected ';' in line: " << token->line << std::endl;
+          // std::cout << "Expected ';' in line: " << token->line //<<
+          // std::endl;
         }
       }
     } else {
-      std::cout << "Expected ':' in line: " << token->line << std::endl;
+      // std::cout << "Expected ':' in line: " << token->line //<< std::endl;
     }
   }
   return true;
 }
 
 bool Sintatico::identifiers_list() {
-  std::cout << token->name << ' ' << "### identifiers_list" << std::endl;
+  ////std::cout << token->name << ' ' << "### identifiers_list" //<< std::endl;
   if (token->type == Type::IDENTIFIER) {
     next();
     if (identifiers_list2()) {
       return true;
     }
   } else {
-    std::cout << "Expected 'IDENTIFIER' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'IDENTIFIER' in line: " << token->line <<
+    // std::endl;
   }
   return false;
 }
 
 bool Sintatico::identifiers_list2() {
-  std::cout << token->name << ' ' << "### identifiers_list2" << std::endl;
+  // std::cout << token->name << ' ' << "### identifiers_list2" //<< std::endl;
   if (token->name == ",") {
     next();
     if (token->type == Type::IDENTIFIER) {
@@ -169,28 +177,28 @@ bool Sintatico::identifiers_list2() {
         return true;
       }
     } else {
-      std::cout << "Expected 'IDENTIFIER' in line: " << token->line
-                << std::endl;
+      // std::cout << "Expected 'IDENTIFIER' in line: " << token->line
+      //<< std::endl;
     }
   }
   return true;
 }
 
 bool Sintatico::type() {
-  std::cout << token->name << ' ' << "### type" << std::endl;
-  if (token->type == Type::INTEGER || token->type == Type::REAL ||
-      token->type == Type::BOOLEAN) {
+  // std::cout << token->name << ' ' << "### type" //<< std::endl;
+  if (token->name == "integer" || token->name == "real" ||
+      token->name == "true" || token->name == "false") {
     return true;
   } else {
-    std::cout << "Expected 'IDENTIFIER' or 'REAL' or 'BOOLEAN' in line: "
-              << token->line << std::endl;
+    // std::cout << "Expected 'IDENTIFIER' or 'REAL' or 'BOOLEAN' in line: "
+    //<< token->line //<< std::endl;
   }
   return false;
 }
 
 bool Sintatico::subprograms_declarations() {
-  std::cout << token->name << ' ' << "### subprograms_declarations"
-            << std::endl;
+  // //std::cout << token->name << ' ' << "### subprograms_declarations"
+  ////<< std::endl;
   if (subprograms_declarations2()) {
     return true;
   }
@@ -198,19 +206,19 @@ bool Sintatico::subprograms_declarations() {
 }
 
 bool Sintatico::subprograms_declarations2() {
-  std::cout << token->name << ' ' << "### subprograms_declarations2"
-            << std::endl;
+  // //std::cout << token->name << ' ' << "### subprograms_declarations2"
+  ////<< std::endl;
   if (subprogram_declaration()) {
-    std::cout << token->name << "--------" << std::endl;
+    // std::cout << token->name << "--------" //<< std::endl;
     next();
     if (token->name == ";") {
       next();
-      std::cout << token->name << "--------" << std::endl;
+      // std::cout << token->name << "--------" //<< std::endl;
       if (subprograms_declarations2()) {
         return true;
       }
     } else {
-      std::cout << "Expected ';' in line: " << token->line << std::endl;
+      // std::cout << "Expected ';' in line: " << token->line //<< std::endl;
       return false;
     }
   }
@@ -218,7 +226,8 @@ bool Sintatico::subprograms_declarations2() {
 }
 
 bool Sintatico::subprogram_declaration() {
-  std::cout << token->name << ' ' << "### subprogram_declaration" << std::endl;
+  // //std::cout << token->name << ' ' << "### subprogram_declaration" <<
+  // std::endl;
   if (token->name == "procedure") {
     next();
     if (token->type == Type::IDENTIFIER) {
@@ -235,13 +244,14 @@ bool Sintatico::subprogram_declaration() {
       }
     }
   } else {
-    std::cout << "Expected 'procedure' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'procedure' in line: " << token->line <<
+    // std::endl;
   }
   return false;
 }
 
 bool Sintatico::arguments() {
-  std::cout << token->name << ' ' << "### arguments" << std::endl;
+  // //std::cout << token->name << ' ' << "### arguments" //<< std::endl;
   if (token->name == "(") {
     next();
     if (parameters_list()) {
@@ -250,20 +260,21 @@ bool Sintatico::arguments() {
         if (token->name == ";") {
           return true;
         } else {
-          std::cout << "Expected ';' in line: " << token->line << std::endl;
+          // std::cout << "Expected ';' in line: " << token->line //<<
+          // std::endl;
         }
       } else {
-        std::cout << "Expected ')' in line: " << token->line << std::endl;
+        // std::cout << "Expected ')' in line: " << token->line //<< std::endl;
       }
     }
   } else {
-    std::cout << "Expected '(' in line: " << token->line << std::endl;
+    // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
   }
   return true;
 }
 
 bool Sintatico::parameters_list() {
-  std::cout << token->name << ' ' << "### parameters_list" << std::endl;
+  // //std::cout << token->name << ' ' << "### parameters_list" //<< std::endl;
   if (identifiers_list()) {
     if (token->name == ":") {
       next();
@@ -274,14 +285,14 @@ bool Sintatico::parameters_list() {
         }
       }
     } else {
-      std::cout << "Expected ':" << token->line << std::endl;
+      // std::cout << "Expected ':" << token->line //<< std::endl;
     }
   }
   return false;
 }
 
 bool Sintatico::parameters_list2() {
-  std::cout << token->name << ' ' << "### parameters_list2" << std::endl;
+  // //std::cout << token->name << ' ' << "### parameters_list2" //<< std::endl;
   if (token->name == ",") {
     next();
     if (identifiers_list()) {
@@ -294,34 +305,35 @@ bool Sintatico::parameters_list2() {
           }
         }
       } else {
-        std::cout << "Expected ': " << token->line << std::endl;
+        // std::cout << "Expected ': " << token->line //<< std::endl;
       }
     }
   } else {
-    std::cout << "Expected ',' in line: " << token->line << std::endl;
+    // std::cout << "Expected ',' in line: " << token->line //<< std::endl;
   }
   return true;
 }
 
 bool Sintatico::compost_command() {
-  std::cout << token->name << ' ' << "### compost_command" << std::endl;
+  // //std::cout << token->name << ' ' << "### compost_command" //<< std::endl;
   if (token->name == "begin") {
     next();
     if (optinals_command()) {
       if (token->name == "end") {
         return true;
       } else {
-        std::cout << "Expected 'end' in line: " << token->line << std::endl;
+        // std::cout << "Expected 'end' in line: " << token->line //<<
+        // std::endl;
       }
     }
   } else {
-    std::cout << "Expected 'begin' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'begin' in line: " << token->line //<< std::endl;
   }
   return false;
 }
 
 bool Sintatico::optinals_command() {
-  std::cout << token->name << ' ' << "### optinals_command" << std::endl;
+  // //std::cout << token->name << ' ' << "### optinals_command" //<< std::endl;
   if (command_list()) {
     return true;
   }
@@ -329,7 +341,7 @@ bool Sintatico::optinals_command() {
 }
 
 bool Sintatico::command_list() {
-  std::cout << token->name << ' ' << "### command_list" << std::endl;
+  // //std::cout << token->name << ' ' << "### command_list" //<< std::endl;
   if (command()) {
     next();
     if (command_list2()) {
@@ -340,7 +352,7 @@ bool Sintatico::command_list() {
 }
 
 bool Sintatico::command_list2() {
-  std::cout << token->name << ' ' << "### command_list2" << std::endl;
+  // //std::cout << token->name << ' ' << "### command_list2" //<< std::endl;
   if (command()) {
     next();
     if (command_list2()) {
@@ -351,7 +363,7 @@ bool Sintatico::command_list2() {
 }
 
 bool Sintatico::command() {
-  std::cout << token->name << ' ' << "### command" << std::endl;
+  // //std::cout << token->name << ' ' << "### command" //<< std::endl;
 
   if (token->type == Type::IDENTIFIER) {
     next();
@@ -361,12 +373,13 @@ bool Sintatico::command() {
         if (token->name == ";") { // não tinha
           return true;
         } else {
-          std::cout << "Expected ';' in line: " << token->line << std::endl;
+          std::cout << "Expected ';' in line: " << (token - 1)->line
+                    << std::endl;
           return false;
         }
       }
     } else {
-      std::cout << "Expected ':=' in line: " << token->line << std::endl;
+      // std::cout << "Expected ':=' in line: " << token->line //<< std::endl;
     }
   } else if (procedure_activation()) {
     return true;
@@ -382,39 +395,41 @@ bool Sintatico::command() {
           if (else_part()) {
             return true;
           } else {
-            std::cout << "Expected 'else' in line: " << token->line
-                      << std::endl;
+            // std::cout << "Expected 'else' in line: " << token->line
+            //<< std::endl;
           }
         } else {
-          std::cout << "Expected 'command' in line: " << token->line
-                    << std::endl;
+          // std::cout << "Expected 'command' in line: " << token->line
+          //<< std::endl;
         }
       } else {
-        std::cout << "Expected 'then' in line: " << token->line << std::endl;
+        // std::cout << "Expected 'then' in line: " << token->line //<<
+        // std::endl;
       }
     } else {
-      std::cout << "Expected 'expression' in line: " << token->line
-                << std::endl;
+      // std::cout << "Expected 'expression' in line: " << token->line
+      //<< std::endl;
     }
   } else if (token->name == "while") {
     next();
-    std::cout << token->name << "--------" << std::endl;
+    // std::cout << token->name << "--------" //<< std::endl;
     if (expression()) {
-      std::cout << token->name << "--------" << std::endl;
+      // std::cout << token->name << "--------" //<< std::endl;
       next();
       if (token->name == "do") {
         next();
         if (command()) {
           return true;
         } else {
-          std::cout << "Expected 'command' in line: " << token->line
-                    << std::endl;
+          // std::cout << "Expected 'command' in line: " << token->line
+          ////<< std::endl;
         }
       } else {
-        std::cout << "Expected 'do' in line: " << token->line << std::endl;
+        // std::cout << "Expected 'do' in line: " << token->line //<< std::endl;
       }
     } else {
-      std::cout << "Expected 'exprssion' in line: " << token->line << std::endl;
+      // std::cout << "Expected 'exprssion' in line: " << token->line <<
+      // std::endl;
     }
   }
 
@@ -422,7 +437,7 @@ bool Sintatico::command() {
 }
 
 bool Sintatico::else_part() {
-  std::cout << token->name << ' ' << "### else_part" << std::endl;
+  // //std::cout << token->name << ' ' << "### else_part" //<< std::endl;
   if (peek().name == "else") {
     next();
   }
@@ -432,13 +447,14 @@ bool Sintatico::else_part() {
       return true;
     }
   } else {
-    std::cout << "Expected 'else' in line: " << token->line << std::endl;
+    // std::cout << "Expected 'else' in line: " << token->line //<< std::endl;
   }
   return true;
 }
 
 bool Sintatico::procedure_activation() { // OLHAR DPS ACHO Q TA ERRADO
-  std::cout << token->name << ' ' << "### procedure_activation" << std::endl;
+  // //std::cout << token->name << ' ' << "### procedure_activation" <<
+  // std::endl;
   if (token->type == Type::IDENTIFIER) {
     next();
     if (token->name == "(") {
@@ -448,11 +464,12 @@ bool Sintatico::procedure_activation() { // OLHAR DPS ACHO Q TA ERRADO
         if (token->name == ")") {
           return true;
         } else {
-          std::cout << "Expected ')' in line: " << token->line << std::endl;
+          // std::cout << "Expected ')' in line: " << token->line //<<
+          // std::endl;
         }
       }
     } else {
-      std::cout << "Expected '(' in line: " << token->line << std::endl;
+      // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
       return true;
     }
   }
@@ -460,7 +477,7 @@ bool Sintatico::procedure_activation() { // OLHAR DPS ACHO Q TA ERRADO
 }
 
 bool Sintatico::expression_list() {
-  std::cout << token->name << ' ' << "### expression_list" << std::endl;
+  // //std::cout << token->name << ' ' << "### expression_list" //<< std::endl;
   if (expression()) {
     next();
     if (expression_list2()) {
@@ -471,7 +488,7 @@ bool Sintatico::expression_list() {
 }
 
 bool Sintatico::expression_list2() {
-  std::cout << token->name << ' ' << "### expression_list2" << std::endl;
+  // //std::cout << token->name << ' ' << "### expression_list2" //<< std::endl;
   if (token->name == ",") {
     next();
     if (expression()) {
@@ -481,22 +498,24 @@ bool Sintatico::expression_list2() {
       }
     }
   } else {
-    std::cout << "Expected ',' in line: " << token->line << std::endl;
+    // std::cout << "Expected ',' in line: " << token->line //<< std::endl;
   }
   return true;
 }
 
 bool Sintatico::expression() {
-  std::cout << token->name << ' ' << "### expression" << std::endl;
+  // //std::cout << token->name << ' ' << "### expression" //<< std::endl;
   if (simple_expression()) {
     if (token->type == Type::RELACIONAL_OPERATOR) {
       next();
-      std::cout << token->name << "--------" << std::endl;
+      // std::cout << token->name
+      //<< "--------" //<< std::endl;
       if (simple_expression()) {
         if (token->name == ")") {
           return true;
         } else {
-          std::cout << "Expected ')' in line: " << token->line << std::endl;
+          // std::cout << "Expected ')' in line: " << token->line //<<
+          // std::endl;
           return false;
         }
       }
@@ -508,7 +527,8 @@ bool Sintatico::expression() {
 }
 
 bool Sintatico::simple_expression() {
-  std::cout << token->name << ' ' << "### simple_expression" << std::endl;
+  // //std::cout << token->name << ' ' << "### simple_expression" //<<
+  // std::endl;
   if (token->name == "-" || token->name == "+") {
     next();
     if (term()) {
@@ -525,7 +545,8 @@ bool Sintatico::simple_expression() {
 }
 
 bool Sintatico::simple_expression2() {
-  std::cout << token->name << ' ' << "### simple_expression2" << std::endl;
+  // //std::cout << token->name << ' ' << "### simple_expression2" //<<
+  // std::endl;
   if (token->name == "-" || token->name == "+" || token->name == "or") {
     next();
     if (term()) {
@@ -534,14 +555,14 @@ bool Sintatico::simple_expression2() {
       }
     }
   } else {
-    std::cout << "Expected 'Aditive operator' in line: " << token->line
-              << std::endl;
+    // std::cout << "Expected 'Aditive operator' in line: " << token->line
+    ////<< std::endl;
   }
   return true;
 }
 
 bool Sintatico::term() {
-  std::cout << token->name << ' ' << "### term" << std::endl;
+  // //std::cout << token->name << ' ' << "### term" //<< std::endl;
   if (factor()) {
     if (token->name == "*" || token->name == "/" || token->name == "and") {
       next();
@@ -549,8 +570,9 @@ bool Sintatico::term() {
         return true;
       }
     } else {
-      std::cout << "Expected 'Multiplicative operator' in line: " << token->line
-                << std::endl;
+      // std::cout << "Expected 'Multiplicative operator' in line: " <<
+      // token->line
+      ////<< std::endl;
       return true;
     }
   }
@@ -558,7 +580,7 @@ bool Sintatico::term() {
 }
 /*
 bool Sintatico::term2() {
-  std::cout << token->name << ' ' << "### term2" << std::endl;
+  //std::cout << token->name << ' ' << "### term2" //<< std::endl;
   if (token->name == "*" || token->name == "/" || token->name == "and") {
     next();
     if (factor()) {
@@ -572,7 +594,7 @@ bool Sintatico::term2() {
 }
 */
 bool Sintatico::factor() {
-  std::cout << token->name << ' ' << "### factor" << std::endl;
+  // //std::cout << token->name << ' ' << "### factor" //<< std::endl;
   if (token->type == Type::IDENTIFIER) {
     next();
     if (token->name == "(") {
@@ -582,11 +604,12 @@ bool Sintatico::factor() {
         if (token->name == ")") {
           return true;
         } else {
-          std::cout << "Expected ')' in line: " << token->line << std::endl;
+          // std::cout << "Expected ')' in line: " << token->line //<<
+          // std::endl;
         }
       }
     } else {
-      std::cout << "Expected '(' in line: " << token->line << std::endl;
+      // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
       return true;
     }
   } else if (token->type == Type::INTEGER) {
@@ -599,6 +622,7 @@ bool Sintatico::factor() {
     next();
     return true;
   } else if (token->name == "(") {
+    std::cout << "opa" << std::endl;
     next();
     if (expression()) {
       if (token->name == ")") {
