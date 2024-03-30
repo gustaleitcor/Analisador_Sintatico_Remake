@@ -1,26 +1,5 @@
-#include "./Sintatico.h"
-#include <exception>
+#include "Sintatico.h"
 #include <iostream>
-#include <list>
-#include <unistd.h>
-#include <vector>
-
-/*
-int control = 0; // onde estamos
-
-if(this->tokens[control] == "program"){
-    control++;
-    if(this->tokens[control] == "id"){
-        control++;
-        if(this->tokens[control] == ";"){
-
-        }else{
-            printf("ERRO");
-        }
-    }
-}
-
-*/
 
 std::string typeToString(Type t);
 Type stringToType(std::string s);
@@ -31,8 +10,7 @@ void Sintatico::next() {
   if ((++this->token - tokens.begin()) >= tokens.size()) {
     throw std::exception();
   }
-  // std::cout << typeToString(this->token->type) << ' ' << this->token->name
-  //           //<< std::endl;
+  std::cout << token->name << std::endl;
 }
 
 Token Sintatico::peek() {
@@ -49,592 +27,601 @@ bool Sintatico::analyse() {
 };
 
 bool Sintatico::program() {
-  // std::cout << token->name << ' ' << "### program" //<< std::endl;
   if (token->name == "program") {
     next();
     if (token->type == Type::IDENTIFIER) {
       next();
       if (token->name == ";") {
+
+        if (!variable_declaration()) {
+          return false; // variable_declaration FAILED
+        }
+
+        if (!subprograms_declarations()) {
+          return false; // subprograms_declarations FAILED
+        }
+
         next();
-        if (variable_declaration()) {
-          if (subprograms_declarations()) {
-            /// std::cout << token->name
-            // << "--------" //<< std::endl;
-            if (compost_command()) {
-              next();
-              if (token->name == ".") {
-                return true;
-              } else {
-                // std::cout << "Expected '.' in line: " << token->line
-                //<< std::endl;
-              }
-            }
+
+        if (compost_command()) {
+          next();
+          if (token->name == ".") {
+            return true;
+          } else {
+            return false; // Expected '.'
           }
+        } else {
+          return false; // compost_command FAILED
         }
       } else {
-        // std::cout << "Expected ';' in line: " << token->line //<< std::endl;
+        return false; // Expected ';'
       }
     } else {
-      // std::cout << "Expected 'IDENTIFIER' in line: " << token->line
-      //<< std::endl;
+      return false; // Expected IDENTIFIER
     }
   } else {
-    // std::cout << "Expected 'program' in line: " << token->line //<<
-    // std::endl;
+    return false; // Expected program
   }
-
   return false;
 }
 
 bool Sintatico::variable_declaration() {
-  /// //std::cout << token->name << ' ' << "### variable_declaration" <<
-  /// std::endl;
-  if (token->name == "var") {
+  if (peek().name == "var") {
     next();
-    if (variable_declaration_list()) {
-      return true;
-    } else {
-      return false;
+    if (token->name == "var") {
+      next();
+      if (variable_declaration_list()) {
+        return true;
+      } else {
+        return false; // variable_declaration_list FAILED
+      }
     }
-  } else {
-    // std::cout << "Expected 'var' in line: " << token->line //<< std::endl;
   }
 
-  return true;
+  return true; // ε
 }
 
 bool Sintatico::variable_declaration_list() {
-  ////std::cout << token->name << ' ' << "### variable_declaration_list"
-  //        //<< std::endl;
   if (identifiers_list()) {
+    next();
     if (token->name == ":") {
       next();
       if (type()) {
         next();
         if (token->name == ";") {
-          next();
-          if (variable_declaration_list2()) {
-            return true;
-          }
+          return variable_declaration_list2();
         } else {
-          std::cout << "Expected ';' in line: " << (token - 1)->line
-                    << std::endl;
+          return false; // Expected ';'
         }
+      } else {
+        return false; // type FAILED
       }
     } else {
-      std::cout << "Expected ':' in line: " << token->line << std::endl;
+      return false; // Expected ';'
     }
+  } else {
+    return false; // identifiers_list FAILED
   }
-  return false;
+
+  return false; // variable_declaration_list FAILED
 }
 
 bool Sintatico::variable_declaration_list2() {
-  ////std::cout << token->name << ' ' << "### variable_declaration_list2"
-  //        //<< std::endl;
-  if (identifiers_list()) {
-    if (token->name == ":") {
-      next();
-      if (type()) {
-        next();
-        if (token->name == ";") {
-          next();
-          if (variable_declaration_list2()) {
-            return true;
-          }
-        } else {
-          // std::cout << "Expected ';' in line: " << token->line //<<
-          // std::endl;
-        }
-      }
-    } else {
-      // std::cout << "Expected ':' in line: " << token->line //<< std::endl;
-    }
-  }
-  return true;
-}
-
-bool Sintatico::identifiers_list() {
-  ////std::cout << token->name << ' ' << "### identifiers_list" //<< std::endl;
-  if (token->type == Type::IDENTIFIER) {
-    next();
-    if (identifiers_list2()) {
-      return true;
-    }
-  } else {
-    // std::cout << "Expected 'IDENTIFIER' in line: " << token->line <<
-    // std::endl;
-  }
-  return false;
-}
-
-bool Sintatico::identifiers_list2() {
-  // std::cout << token->name << ' ' << "### identifiers_list2" //<< std::endl;
-  if (token->name == ",") {
-    next();
-    if (token->type == Type::IDENTIFIER) {
-      next();
-      if (identifiers_list2()) {
-        return true;
-      }
-    } else {
-      // std::cout << "Expected 'IDENTIFIER' in line: " << token->line
-      //<< std::endl;
-    }
-  }
-  return true;
-}
-
-bool Sintatico::type() {
-  // std::cout << token->name << ' ' << "### type" //<< std::endl;
-  if (token->name == "integer" || token->name == "real" ||
-      token->name == "true" || token->name == "false") {
-    return true;
-  } else {
-    // std::cout << "Expected 'IDENTIFIER' or 'REAL' or 'BOOLEAN' in line: "
-    //<< token->line //<< std::endl;
-  }
-  return false;
-}
-
-bool Sintatico::subprograms_declarations() {
-  // //std::cout << token->name << ' ' << "### subprograms_declarations"
-  ////<< std::endl;
-  if (subprograms_declarations2()) {
-    return true;
-  }
-  return false;
-}
-
-bool Sintatico::subprograms_declarations2() {
-  // //std::cout << token->name << ' ' << "### subprograms_declarations2"
-  ////<< std::endl;
-  if (subprogram_declaration()) {
-    // std::cout << token->name << "--------" //<< std::endl;
-    next();
-    if (token->name == ";") {
-      next();
-      // std::cout << token->name << "--------" //<< std::endl;
-      if (subprograms_declarations2()) {
-        return true;
-      }
-    } else {
-      // std::cout << "Expected ';' in line: " << token->line //<< std::endl;
-      return false;
-    }
-  }
-  return true;
-}
-
-bool Sintatico::subprogram_declaration() {
-  // //std::cout << token->name << ' ' << "### subprogram_declaration" <<
-  // std::endl;
-  if (token->name == "procedure") {
-    next();
-    if (token->type == Type::IDENTIFIER) {
-      next();
-      if (arguments()) {
-        next();
-        if (variable_declaration()) {
-          if (subprograms_declarations()) {
-            if (compost_command()) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-  } else {
-    // std::cout << "Expected 'procedure' in line: " << token->line <<
-    // std::endl;
-  }
-  return false;
-}
-
-bool Sintatico::arguments() {
-  // //std::cout << token->name << ' ' << "### arguments" //<< std::endl;
-  if (token->name == "(") {
-    next();
-    if (parameters_list()) {
-      if (token->name == ")") {
-        next();
-        if (token->name == ";") {
-          return true;
-        } else {
-          // std::cout << "Expected ';' in line: " << token->line //<<
-          // std::endl;
-        }
-      } else {
-        // std::cout << "Expected ')' in line: " << token->line //<< std::endl;
-      }
-    }
-  } else {
-    // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
-  }
-  return true;
-}
-
-bool Sintatico::parameters_list() {
-  // //std::cout << token->name << ' ' << "### parameters_list" //<< std::endl;
-  if (identifiers_list()) {
-    if (token->name == ":") {
-      next();
-      if (type()) {
-        next();
-        if (parameters_list2()) {
-          return true;
-        }
-      }
-    } else {
-      // std::cout << "Expected ':" << token->line //<< std::endl;
-    }
-  }
-  return false;
-}
-
-bool Sintatico::parameters_list2() {
-  // //std::cout << token->name << ' ' << "### parameters_list2" //<< std::endl;
-  if (token->name == ",") {
+  if (peek().type == Type::IDENTIFIER) {
     next();
     if (identifiers_list()) {
+      next();
       if (token->name == ":") {
         next();
         if (type()) {
           next();
-          if (parameters_list2()) {
-            return true;
+          if (token->name == ";") {
+            return variable_declaration_list2();
+          } else {
+            return false; // Expected ';'
+          }
+        } else {
+          return false; // type FAILED
+        }
+      } else {
+        return false; // Expected ':'
+      }
+    } else {
+      return false; // identifiers_list FAILED
+    }
+  }
+
+  return true; // ε
+}
+
+bool Sintatico::identifiers_list() {
+  if (token->type == Type::IDENTIFIER) {
+    return identifiers_list2();
+  }
+
+  return false;
+}
+
+bool Sintatico::identifiers_list2() {
+  if (peek().name == ",") {
+    next();
+    if (token->name == ",") {
+      next();
+      if (token->type == Type::IDENTIFIER) {
+        return identifiers_list2();
+      } else {
+        return false; // Expected IDENTIFIER
+      }
+    } else {
+      return false; // Expected ','
+    }
+  }
+  return true; // ε
+}
+
+bool Sintatico::type() {
+  if (token->name == "integer") {
+    return true;
+  }
+
+  if (token->name == "real") {
+    return true;
+  }
+
+  if (token->name == "boolean") {
+    return true;
+  }
+
+  return false; // type FAILED
+}
+
+bool Sintatico::subprograms_declarations() {
+  if (peek().name == "procedure") {
+    next();
+    if (subprogram_declaration()) {
+      next();
+      if (token->name == ";") {
+        return subprograms_declarations();
+      } else {
+        return false; // Expected ';'
+      }
+    } else {
+      return false; // subprogram_declaration FAILED
+    }
+  }
+
+  return true; // ε
+}
+
+bool Sintatico::subprogram_declaration() {
+  if (token->name == "procedure") {
+    next();
+
+    if (token->type == Type::IDENTIFIER) {
+
+      if (!arguments()) {
+        return false; // arguments FAILED
+      }
+
+      next();
+
+      if (token->name == ";") {
+
+        if (!variable_declaration()) {
+          return false; // variable_declaration FAILED
+        }
+
+        if (!subprograms_declarations()) {
+          return false; // subprograms_declarations FAILED
+        }
+
+        next();
+
+        if (compost_command()) {
+          return true;
+        } else {
+          return false; // compost_command FAILED
+        }
+      } else {
+        return false; // Esxpected ';'
+      }
+    }
+  }
+
+  return false; // subprogram_declaration FAILED
+}
+
+bool Sintatico::parameters_list() {
+  if (identifiers_list()) {
+    next();
+    if (token->name == ":") {
+      next();
+      if (type()) {
+        return parameters_list2();
+      } else {
+        return false; // type FAILED
+      }
+    } else {
+      return false; // Expected ':'
+    }
+  } else {
+    return false; // identifiers_list FAILED
+  }
+
+  return false; // parameters_list FAILED
+}
+
+bool Sintatico::parameters_list2() {
+
+  if (peek().name == ";") {
+    next();
+    if (token->name == ";") {
+      next();
+      if (identifiers_list()) {
+        next();
+        if (token->name == ":") {
+          next();
+          if (type()) {
+            return parameters_list2();
+          } else {
+            return false; // type FAILED
           }
         }
       } else {
-        // std::cout << "Expected ': " << token->line //<< std::endl;
+        return false; // identifiers_list FAILED
       }
     }
-  } else {
-    // std::cout << "Expected ',' in line: " << token->line //<< std::endl;
   }
-  return true;
+
+  return true; // ε
+}
+
+bool Sintatico::arguments() {
+  if (peek().name == "(") {
+    next();
+    if (token->name == "(") {
+      next();
+      if (parameters_list()) {
+        next();
+        if (token->name == ")") {
+          return true;
+        } else {
+          return false; // Expected '}'
+        }
+      } else {
+        return false; // parameters_list FAILED
+      }
+    }
+  }
+
+  return true; // ε
 }
 
 bool Sintatico::compost_command() {
-  // //std::cout << token->name << ' ' << "### compost_command" //<< std::endl;
   if (token->name == "begin") {
+
+    if (!optinals_command()) {
+      return false; // optinals_command FAILED
+    }
+
     next();
-    if (optinals_command()) {
-      if (token->name == "end") {
-        return true;
-      } else {
-        // std::cout << "Expected 'end' in line: " << token->line //<<
-        // std::endl;
-      }
+
+    if (token->name == "end") {
+      return true;
+    } else {
+      return false; // Expected 'END'
     }
   } else {
-    // std::cout << "Expected 'begin' in line: " << token->line //<< std::endl;
+    return false; // Expected 'BEGIN'
   }
-  return false;
+
+  return false; // arguments FAILED
 }
 
 bool Sintatico::optinals_command() {
-  // //std::cout << token->name << ' ' << "### optinals_command" //<< std::endl;
-  if (command_list()) {
-    return true;
+  if (peek().type == Type::IDENTIFIER || peek().name == "begin" ||
+      peek().name == "if" || peek().name == "while") {
+    next();
+    if (command_list()) {
+      return true;
+    } else {
+      return false; // command_list FAILED
+    }
   }
-  return true;
+
+  return true; // ε
 }
 
 bool Sintatico::command_list() {
-  // //std::cout << token->name << ' ' << "### command_list" //<< std::endl;
   if (command()) {
-    next();
-    if (command_list2()) {
-      return true;
-    }
+    return command_list2();
+  } else {
+    return false; // command FAILED
   }
-  return false;
+
+  return false; // command_list FAILED
 }
 
 bool Sintatico::command_list2() {
-  // //std::cout << token->name << ' ' << "### command_list2" //<< std::endl;
-  if (command()) {
+  if (peek().name == ";") {
     next();
-    if (command_list2()) {
-      return true;
+    if (token->name == ";") {
+      if (peek().name == "end") { // gambiarra
+        return true;
+      }
+      next();
+      if (command()) {
+        return command_list2();
+      } else {
+        return false; // command FAILED
+      }
     }
   }
-  return false;
+  return true; // ε
 }
 
 bool Sintatico::command() {
-  // //std::cout << token->name << ' ' << "### command" //<< std::endl;
 
   if (token->type == Type::IDENTIFIER) {
-    next();
-    if (token->name == ":=") {
+    if (peek().name == ":=") {
       next();
-      if (expression()) {
-        if (token->name == ";") { // não tinha
+      if (token->name == ":=") {
+        next();
+        if (expression()) {
           return true;
         } else {
-          std::cout << "Expected ';' in line: " << (token - 1)->line
-                    << std::endl;
-          return false;
+          return false; // expression FAIlED
         }
       }
-    } else {
-      // std::cout << "Expected ':=' in line: " << token->line //<< std::endl;
     }
-  } else if (procedure_activation()) {
-    return true;
-  } else if (compost_command()) {
-    return true;
-  } else if (token->name == "if") {
+
+    if (procedure_activation()) {
+      return true;
+    } else {
+      return false; // procedure_activation FAILED
+    }
+  }
+
+  if (token->name == "begin") {
+    if (compost_command()) {
+      return true;
+    } else {
+      return false; // compost_command FAILED
+    }
+  }
+
+  if (token->name == "if") {
     next();
     if (expression()) {
       next();
       if (token->name == "then") {
         next();
         if (command()) {
-          if (else_part()) {
-            return true;
-          } else {
-            // std::cout << "Expected 'else' in line: " << token->line
-            //<< std::endl;
-          }
+          return else_part();
         } else {
-          // std::cout << "Expected 'command' in line: " << token->line
-          //<< std::endl;
+          return false; // command FAILED
         }
       } else {
-        // std::cout << "Expected 'then' in line: " << token->line //<<
-        // std::endl;
+        return false; // Expected 'then'
       }
     } else {
-      // std::cout << "Expected 'expression' in line: " << token->line
-      //<< std::endl;
+      return false; // expression FAILED
     }
-  } else if (token->name == "while") {
+  }
+
+  if (token->name == "while") {
     next();
-    // std::cout << token->name << "--------" //<< std::endl;
     if (expression()) {
-      // std::cout << token->name << "--------" //<< std::endl;
       next();
       if (token->name == "do") {
         next();
         if (command()) {
           return true;
         } else {
-          // std::cout << "Expected 'command' in line: " << token->line
-          ////<< std::endl;
+          return false; // command FAILED
         }
       } else {
-        // std::cout << "Expected 'do' in line: " << token->line //<< std::endl;
+        return false; // Expected 'do'
       }
     } else {
-      // std::cout << "Expected 'exprssion' in line: " << token->line <<
-      // std::endl;
+      return false; // expression FAILED
     }
   }
 
-  return false;
+  return false; // command FAILED
 }
 
 bool Sintatico::else_part() {
-  // //std::cout << token->name << ' ' << "### else_part" //<< std::endl;
+  if (peek().name == ";") // gambiarra
+    next();
   if (peek().name == "else") {
     next();
-  }
-  if (token->name == "else") {
-    next();
-    if (command()) {
-      return true;
+    if (token->name == "else") {
+      next();
+      if (command()) {
+        return true;
+      } else {
+        return false; // command FAILED
+      }
     }
-  } else {
-    // std::cout << "Expected 'else' in line: " << token->line //<< std::endl;
   }
-  return true;
+
+  return true; // ε
 }
 
-bool Sintatico::procedure_activation() { // OLHAR DPS ACHO Q TA ERRADO
-  // //std::cout << token->name << ' ' << "### procedure_activation" <<
-  // std::endl;
+bool Sintatico::procedure_activation() {
   if (token->type == Type::IDENTIFIER) {
-    next();
-    if (token->name == "(") {
+    if (peek().name == "(") {
       next();
-      if (expression_list()) {
+      if (token->name == "(") {
         next();
-        if (token->name == ")") {
-          return true;
+        if (expression_list()) {
+          next();
+          if (token->name == ")") {
+            return true;
+          } else {
+            return false; // Expected ')'
+          }
         } else {
-          // std::cout << "Expected ')' in line: " << token->line //<<
-          // std::endl;
+          return false; // expression_list FAILED
         }
       }
-    } else {
-      // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
-      return true;
     }
+    return true;
   }
-  return false;
+  return false; // procedure_activation FAILED
 }
 
 bool Sintatico::expression_list() {
-  // //std::cout << token->name << ' ' << "### expression_list" //<< std::endl;
   if (expression()) {
-    next();
-    if (expression_list2()) {
-      return true;
-    }
+    return expression_list2();
+  } else {
+    return false; // expression FAILED
   }
-  return false;
+  return false; // expression_list FAILED
 }
 
 bool Sintatico::expression_list2() {
-  // //std::cout << token->name << ' ' << "### expression_list2" //<< std::endl;
-  if (token->name == ",") {
+  if (peek().name == ",") {
     next();
-    if (expression()) {
+    if (token->name == ",") {
       next();
-      if (expression_list2()) {
-        return true;
+      if (expression()) {
+        return expression_list2();
+      } else {
+        return false; // expression FAILED
       }
     }
-  } else {
-    // std::cout << "Expected ',' in line: " << token->line //<< std::endl;
   }
-  return true;
+
+  return true; // ε
 }
 
 bool Sintatico::expression() {
-  // //std::cout << token->name << ' ' << "### expression" //<< std::endl;
   if (simple_expression()) {
-    if (token->type == Type::RELACIONAL_OPERATOR) {
+    if (peek().type == Type::RELACIONAL_OPERATOR) {
       next();
-      // std::cout << token->name
-      //<< "--------" //<< std::endl;
-      if (simple_expression()) {
-        if (token->name == ")") {
+      if (token->type == Type::RELACIONAL_OPERATOR) {
+        next();
+        if (expression_list()) {
           return true;
         } else {
-          // std::cout << "Expected ')' in line: " << token->line //<<
-          // std::endl;
-          return false;
+          return false; // expression_list FAILED
         }
       }
-    } else {
-      return true;
     }
+
+    return true;
+  } else {
+    return false; // simple_expression FAILED
   }
-  return false;
+
+  return false; // expression FAILED
 }
 
 bool Sintatico::simple_expression() {
-  // //std::cout << token->name << ' ' << "### simple_expression" //<<
-  // std::endl;
-  if (token->name == "-" || token->name == "+") {
+  if (term()) {
+    return simple_expression2();
+  } else {
+    return false; // term FAILED
+  }
+
+  if (token->name == "+" || token->name == "-" || token->name == "and") {
     next();
     if (term()) {
-      if (simple_expression2()) {
-        return true;
-      }
-    }
-  } else if (term()) {
-    if (simple_expression2()) {
-      return true;
+      return simple_expression2();
+    } else {
+      return false; // term FAILED
     }
   }
-  return false;
+
+  return false; // simple_expression FAILED
 }
 
 bool Sintatico::simple_expression2() {
-  // //std::cout << token->name << ' ' << "### simple_expression2" //<<
-  // std::endl;
-  if (token->name == "-" || token->name == "+" || token->name == "or") {
+  if (peek().name == "+" || peek().name == "-" || peek().name == "and") {
     next();
-    if (term()) {
-      if (simple_expression2()) {
-        return true;
+    if (token->name == "+" || token->name == "-" || peek().name == "and") {
+      next();
+      if (term()) {
+        return simple_expression2();
+      } else {
+        return false; // term FAILED
       }
     }
-  } else {
-    // std::cout << "Expected 'Aditive operator' in line: " << token->line
-    ////<< std::endl;
   }
-  return true;
+
+  return true; // ε
 }
 
 bool Sintatico::term() {
-  // //std::cout << token->name << ' ' << "### term" //<< std::endl;
   if (factor()) {
-    if (token->name == "*" || token->name == "/" || token->name == "and") {
-      next();
-      if (term()) {
-        return true;
-      }
-    } else {
-      // std::cout << "Expected 'Multiplicative operator' in line: " <<
-      // token->line
-      ////<< std::endl;
-      return true;
-    }
+    return term2();
   }
-  return false;
+  return false; // term FAILED
 }
-/*
+
 bool Sintatico::term2() {
-  //std::cout << token->name << ' ' << "### term2" //<< std::endl;
-  if (token->name == "*" || token->name == "/" || token->name == "and") {
+
+  if (peek().name == "*" || peek().name == "/" || peek().name == "or") {
     next();
-    if (factor()) {
+    if (token->name == "*" || token->name == "/" || token->name == "or") {
       next();
-      if (term2()) {
-        return true;
+      if (factor()) {
+        return term2();
       }
     }
   }
-  return true;
+
+  return true; // ε
 }
-*/
+
 bool Sintatico::factor() {
-  // //std::cout << token->name << ' ' << "### factor" //<< std::endl;
   if (token->type == Type::IDENTIFIER) {
-    next();
-    if (token->name == "(") {
+    if (peek().name == "(") {
       next();
-      if (expression_list()) {
+      if (token->name == "(") {
         next();
-        if (token->name == ")") {
-          return true;
-        } else {
-          // std::cout << "Expected ')' in line: " << token->line //<<
-          // std::endl;
+        if (expression_list()) {
+          next();
+          if (token->name == ")") {
+            return true;
+          }
         }
       }
-    } else {
-      // std::cout << "Expected '(' in line: " << token->line //<< std::endl;
-      return true;
     }
-  } else if (token->type == Type::INTEGER) {
-    next();
     return true;
-  } else if (token->type == Type::REAL) {
-    next();
+  }
+
+  if (token->type == Type::INTEGER) {
     return true;
-  } else if (token->type == Type::BOOLEAN) {
-    next();
+  }
+
+  if (token->type == Type::REAL) {
     return true;
-  } else if (token->name == "(") {
-    std::cout << "opa" << std::endl;
+  }
+
+  if (token->type == Type::BOOLEAN) {
+    return true;
+  }
+
+  if (token->name == "(") {
     next();
     if (expression()) {
+      next();
       if (token->name == ")") {
         return true;
       }
     }
-  } else if (token->name == "not") {
+  }
+
+  if (token->name == "not") {
     next();
     if (factor()) {
       return true;
     }
   }
+
   return false;
 }
 

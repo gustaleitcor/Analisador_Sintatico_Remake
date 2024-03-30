@@ -48,7 +48,7 @@ public:
 
   bool subprogram_declaration();
   bool subprograms_declarations();
-  bool subprograms_declarations2();
+  // bool subprograms_declarations2();
   bool arguments();
   bool parameters_list();
   bool parameters_list2();
