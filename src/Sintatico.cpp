@@ -199,9 +199,7 @@ bool Sintatico::subprogram_declaration() {
 
     if (token->type == Type::IDENTIFIER) {
 
-      if (!arguments()) {
-        return false; // arguments FAILED
-      }
+      arguments();
 
       next();
 
@@ -334,6 +332,7 @@ bool Sintatico::optinals_command() {
 
 bool Sintatico::command_list() {
   if (command()) {
+    std::cout << "debug " << token->name << std::endl;
     return command_list2();
   } else {
     return false; // command FAILED
@@ -357,7 +356,12 @@ bool Sintatico::command_list2() {
       }
     }
   }
-  return true; // ε
+
+  if (token->name == "end") {
+    return true;
+  }
+
+  return false; // ε
 }
 
 bool Sintatico::command() {
@@ -456,7 +460,6 @@ bool Sintatico::procedure_activation() {
       if (token->name == "(") {
         next();
         if (expression_list()) {
-          next();
           if (token->name == ")") {
             return true;
           } else {
@@ -557,6 +560,8 @@ bool Sintatico::simple_expression2() {
 bool Sintatico::term() {
   if (factor()) {
     return term2();
+  } else {
+    return false; // factor FAILED
   }
   return false; // term FAILED
 }
@@ -569,6 +574,8 @@ bool Sintatico::term2() {
       next();
       if (factor()) {
         return term2();
+      } else {
+        return false; // factor FAILED
       }
     }
   }
@@ -620,6 +627,10 @@ bool Sintatico::factor() {
     if (factor()) {
       return true;
     }
+  }
+
+  if (token->name == ")") {
+    return true;
   }
 
   return false;
