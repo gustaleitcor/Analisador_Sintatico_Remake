@@ -30,6 +30,7 @@ struct Token {
 
 struct Variable {
   Token token;
+  Type semantic_type;
   size_t scope;
 };
 
@@ -79,7 +80,10 @@ public:
 
   bool checkInScope(Variable comp, size_t scope);
   bool checkIfExists(Variable var);
+  bool evaluate(std::vector<Token> line);
   void removeScope(size_t scope);
+  std::vector<Token> saveLine();
+  Type getType();
 };
 
 Type stringToType(std::string s);

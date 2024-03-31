@@ -4,7 +4,7 @@ var
 
 procedure teste (A:integer; B:real);
 var
-   S,X: real;
+   S,X: boolean;
 begin
    S := A + B * X + 4 / 4;
 end; {verifique se é necessário um ";" no fechamento de um procedimento}

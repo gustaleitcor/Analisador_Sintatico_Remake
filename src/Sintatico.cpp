@@ -1,5 +1,12 @@
 #include "Sintatico.h"
+#include <csignal>
+#include <cstddef>
+#include <cstdio>
+#include <exception>
 #include <iostream>
+#include <iterator>
+#include <ostream>
+#include <vector>
 
 std::string typeToString(Type t);
 Type stringToType(std::string s);
@@ -10,6 +17,7 @@ void Sintatico::next() {
   if ((++this->token - tokens.begin()) >= tokens.size()) {
     throw std::exception();
   }
+
   std::cout << token->name << std::endl;
 }
 
@@ -22,6 +30,109 @@ Token Sintatico::peek() {
 }
 
 // Coisas do semântico
+// while (b = 1 + 2 + 3)
+
+// OI MARCELO!!!!
+
+std::vector<Token> Sintatico::saveLine() {
+  std::vector<Token> line;
+  for (auto it = token; it->name != ";"; it++) {
+    line.push_back(*it);
+  }
+  return line;
+}
+
+bool Sintatico::evaluate(std::vector<Token> line) {
+  for (int j = line.size() - 1; j >= 0; j--) {
+    if (line[j].type == Type::DELIMITER) {
+      line.erase(line.begin() + j);
+      continue;
+    }
+    if (line[j].type == Type::IDENTIFIER) {
+      for (int i = stack.size() - 1; i >= 0; i--) {
+        if (stack[i].token.name == line[j].name) {
+          line[j].type = stack[i].semantic_type;
+        }
+      }
+    }
+  }
+
+  for (auto val : line) {
+    std::cout << typeToString(val.type) << ' ';
+  }
+  std::cout << std::endl;
+
+  Type V1, V2, V3;
+  V3 = line[0].type;
+
+  if (V3 == PROCEDURE) {
+    for (auto val : line) {
+      if (val.type == Type::ASSIGN) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Type result;
+  for (int i = line.size() - 1; i >= 2; i -= 2) {
+    if (line[i - 1].type != Type::OPERATOR) {
+      if (line[i - 1].type == Type::ASSIGN) {
+        break;
+      }
+      return false;
+    }
+    V1 = line[i].type;
+    V2 = line[i - 2].type;
+    line.pop_back();
+    line.pop_back();
+    line.pop_back();
+
+    if (V1 == REAL || V2 == REAL) {
+      result = REAL;
+    } else if (V1 == INTEGER && V2 == INTEGER) {
+      result = INTEGER;
+    } else {
+      return false;
+    }
+
+    line.push_back({result});
+  }
+
+  if (line[0].type == REAL && line[2].type == INTEGER) {
+    return true;
+  } else if (line[0].type == INTEGER && line[2].type == INTEGER) {
+    return true;
+  } else if (line[0].type == REAL && line[2].type == REAL) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// B - REAL , C - INT, D - INT, A - INT
+
+// A := B + (C + D);
+
+Type Sintatico::getType() {
+  TOKEN_ITERATOR it;
+  for (it = token; it->name != ":"; it++)
+    ;
+
+  if ((it + 1)->name == "integer") {
+    return Type::INTEGER;
+  }
+
+  if ((it + 1)->name == "real") {
+    return Type::REAL;
+  }
+
+  if ((it + 1)->name == "boolean") {
+    return Type::BOOLEAN;
+  }
+
+  throw std::exception();
+}
 
 bool Sintatico::checkInScope(Variable comp, size_t scope) {
   // std::cout << stack.size() << std::endl;
@@ -77,8 +188,8 @@ bool Sintatico::program() {
     next();
     if (token->type == Type::IDENTIFIER) {
 
-      if (!checkInScope({*token, scope}, scope)) {
-        stack.push_back({*token, scope});
+      if (!checkInScope({*token, Type::PROGRAM, scope}, scope)) {
+        stack.push_back({*token, Type::PROGRAM, scope});
       } else {
         return false; // Variable alredy declared
       }
@@ -196,8 +307,8 @@ bool Sintatico::variable_declaration_list2() {
 bool Sintatico::identifiers_list() {
   if (token->type == Type::IDENTIFIER) {
 
-    if (!checkInScope({*token, scope}, scope)) {
-      stack.push_back({*token, scope});
+    if (!checkInScope({*token, getType(), scope}, scope)) {
+      stack.push_back({*token, getType(), scope});
     } else {
       return false; // Variable alredy declared
     }
@@ -215,8 +326,8 @@ bool Sintatico::identifiers_list2() {
       next();
       if (token->type == Type::IDENTIFIER) {
 
-        if (!checkInScope({*token, scope}, scope)) {
-          stack.push_back({*token, scope});
+        if (!checkInScope({*token, getType(), scope}, scope)) {
+          stack.push_back({*token, getType(), scope});
         } else {
           return false; // Variable alredy declared
         }
@@ -271,8 +382,8 @@ bool Sintatico::subprogram_declaration() {
     next();
     if (token->type == Type::IDENTIFIER) {
 
-      if (!checkInScope({*token, scope}, scope)) {
-        stack.push_back({*token, scope});
+      if (!checkInScope({*token, Type::PROCEDURE, scope}, scope)) {
+        stack.push_back({*token, Type::PROCEDURE, scope});
       } else {
         return false; // Variable alredy declared
       }
@@ -449,7 +560,12 @@ bool Sintatico::command_list2() {
 bool Sintatico::command() {
 
   if (token->type == Type::IDENTIFIER) {
-    if (!checkIfExists({*token, scope})) {
+
+    if (!evaluate(saveLine())) {
+      return false; // Expression not correct
+    }
+
+    if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
       return false; // Variable does not exists
     }
 
@@ -543,7 +659,7 @@ bool Sintatico::else_part() {
 
 bool Sintatico::procedure_activation() {
   if (token->type == Type::IDENTIFIER) {
-    if (!checkIfExists({*token, scope})) {
+    if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
       return false; // procedure does not exists
     }
     if (peek().name == "(") {
@@ -682,7 +798,7 @@ bool Sintatico::term2() {
 
 bool Sintatico::factor() {
   if (token->type == Type::IDENTIFIER) {
-    if (!checkIfExists({*token, scope})) {
+    if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
       return false; // procedure does not exists
     }
     if (peek().name == "(") {
@@ -741,6 +857,8 @@ Type stringToType(std::string s) {
     return Type::REAL;
   } else if (s == "INTEGER") {
     return Type::INTEGER;
+  } else if (s == "BOOLEAN") {
+    return Type::BOOLEAN;
   } else if (s == "RELACIONAL_OPERATOR") {
     return Type::RELACIONAL_OPERATOR;
   } else if (s == "LOGICAL_OPERATOR") {
@@ -755,6 +873,12 @@ Type stringToType(std::string s) {
     return Type::DELIMITER;
   } else if (s == "ASSIGN") {
     return Type::ASSIGN;
+  } else if (s == "EXPRESSION") {
+    return Type::EXPRESSION;
+  } else if (s == "PROGRAM") {
+    return Type::PROGRAM;
+  } else if (s == "PROCEDURE") {
+    return Type::PROCEDURE;
   }
   throw std::exception();
 }
@@ -765,6 +889,8 @@ std::string typeToString(Type t) {
     return "REAL";
   } else if (t == Type::INTEGER) {
     return "INTEGER";
+  } else if (t == Type::BOOLEAN) {
+    return "BOOLEAN";
   } else if (t == Type::RELACIONAL_OPERATOR) {
     return "RELACIONAL_OPERATOR";
   } else if (t == Type::LOGICAL_OPERATOR) {
@@ -779,6 +905,12 @@ std::string typeToString(Type t) {
     return "DELIMITER";
   } else if (t == Type::ASSIGN) {
     return "ASSIGN";
+  } else if (t == Type::EXPRESSION) {
+    return "EXPRESSION";
+  } else if (t == Type::PROGRAM) {
+    return "PROGRAM";
+  } else if (t == Type::PROCEDURE) {
+    return "PROCEDURE";
   }
   throw std::exception();
 }

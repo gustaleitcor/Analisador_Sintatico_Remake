@@ -21,10 +21,15 @@ int main(int argc, char *argv[]) {
         (Token){.type = stringToType(type), .name = token, .line = line_ul});
   }
 
+  input_file.close();
+
   try {
     if (sintatico.analyse()) {
       std::cout << "Programa correto" << std::endl;
     } else {
+      if (sintatico.token == sintatico.tokens.end()) {
+        std::cout << "Programa correto" << std::endl;
+      }
       std::cout << "Programa incorreto" << std::endl;
     }
   } catch (...) {
@@ -36,8 +41,6 @@ int main(int argc, char *argv[]) {
   // for (auto token : sintatico.tokens) {
   //   std::cout << token.type << ' ' << token.name << std::endl;
   // }
-
-  input_file.close();
 
   return 0;
 }
