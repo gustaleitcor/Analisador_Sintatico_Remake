@@ -34,9 +34,9 @@ Token Sintatico::peek() {
 
 // OI MARCELO!!!!
 
-std::vector<Token> Sintatico::saveLine() {
+std::vector<Token> Sintatico::saveLine(std::string s) {
   std::vector<Token> line;
-  for (auto it = token; it->name != ";"; it++) {
+  for (auto it = token; it->name != s; it++) {
     line.push_back(*it);
   }
   return line;
@@ -44,7 +44,11 @@ std::vector<Token> Sintatico::saveLine() {
 
 bool Sintatico::evaluate(std::vector<Token> line) {
   for (int j = line.size() - 1; j >= 0; j--) {
-    if (line[j].type == Type::DELIMITER) {
+    if ((line[j].type == Type::DELIMITER) || (line[j].type == Type::KEYWORD)) {
+      if ((line[j].type == Type::KEYWORD) &&
+          (line[j + 1].type != Type::BOOLEAN)) {
+        return false;
+      }
       line.erase(line.begin() + j);
       continue;
     }
@@ -62,10 +66,15 @@ bool Sintatico::evaluate(std::vector<Token> line) {
   }
   std::cout << std::endl;
 
-  Type V1, V2, V3;
-  V3 = line[0].type;
+  // a == b != c
+  // a := b + c
+  // a := INTEGER
+  // INTEGER
+  // (a + b) != (c + d)
 
-  if (V3 == PROCEDURE) {
+  Type V1, V2, V3;
+  Type result;
+  if (line[0].type == PROCEDURE) {
     for (auto val : line) {
       if (val.type == Type::ASSIGN) {
         return false;
@@ -74,40 +83,45 @@ bool Sintatico::evaluate(std::vector<Token> line) {
     return true;
   }
 
-  Type result;
-  for (int i = line.size() - 1; i >= 2; i -= 2) {
-    if (line[i - 1].type != Type::OPERATOR) {
-      if (line[i - 1].type == Type::ASSIGN) {
-        break;
+  if (line[1].type == Type::ASSIGN) {
+    for (int i = line.size() - 1; i >= 2; i -= 2) {
+      if (line[i - 1].type != Type::OPERATOR) {
+        if (line[i - 1].type == Type::ASSIGN) {
+          break;
+        }
+        return false;
       }
-      return false;
-    }
-    V1 = line[i].type;
-    V2 = line[i - 2].type;
-    line.pop_back();
-    line.pop_back();
-    line.pop_back();
+      V1 = line[i].type;
+      V2 = line[i - 2].type;
+      line.pop_back();
+      line.pop_back();
+      line.pop_back();
 
-    if (V1 == REAL || V2 == REAL) {
-      result = REAL;
-    } else if (V1 == INTEGER && V2 == INTEGER) {
-      result = INTEGER;
+      if (V1 == REAL || V2 == REAL) {
+        result = REAL;
+      } else if (V1 == INTEGER && V2 == INTEGER) {
+        result = INTEGER;
+      } else {
+        return false;
+      }
+
+      line.push_back({result});
+    }
+
+    if (line[0].type == REAL && line[2].type == INTEGER) {
+      return true;
+    } else if (line[0].type == INTEGER && line[2].type == INTEGER) {
+      return true;
+    } else if (line[0].type == REAL && line[2].type == REAL) {
+      return true;
+    } else if (line[0].type == BOOLEAN && line[2].type == BOOLEAN) {
+      return true;
     } else {
       return false;
     }
-
-    line.push_back({result});
   }
 
-  if (line[0].type == REAL && line[2].type == INTEGER) {
-    return true;
-  } else if (line[0].type == INTEGER && line[2].type == INTEGER) {
-    return true;
-  } else if (line[0].type == REAL && line[2].type == REAL) {
-    return true;
-  } else {
-    return false;
-  }
+  return false;
 }
 
 // B - REAL , C - INT, D - INT, A - INT
@@ -561,7 +575,7 @@ bool Sintatico::command() {
 
   if (token->type == Type::IDENTIFIER) {
 
-    if (!evaluate(saveLine())) {
+    if (!evaluate(saveLine(";"))) {
       return false; // Expression not correct
     }
 

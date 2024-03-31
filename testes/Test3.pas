@@ -21,14 +21,14 @@ begin
     begin
         A := VASCO+1;
         I(A, B, C, 303);
-        I := 5;
+        A := 5;
 
     end;
 
     begin
         A := VASCO+1;
         I(A, B, C, 303);
-        I := 5;
+        A := 5;
     end;
 
 end. 

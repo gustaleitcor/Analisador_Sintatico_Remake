@@ -82,7 +82,7 @@ public:
   bool checkIfExists(Variable var);
   bool evaluate(std::vector<Token> line);
   void removeScope(size_t scope);
-  std::vector<Token> saveLine();
+  std::vector<Token> saveLine(std::string s);
   Type getType();
 };
 
