@@ -6,7 +6,7 @@ begin
     while (I <= 5) do
     begin
         A := A+1;
-        I(A, B, C +A, 303);
+        I();
     end
 end.
 

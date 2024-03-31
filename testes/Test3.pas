@@ -1,9 +1,34 @@
-program Test3;
-begin
-   NUMERO := 3 * 5 + 7 - 9;
-   if (NUMERO >= 20) then
-      NUMERO := 10 * 3;  
-   else NUMERO := 10 / 3;  
-end.
+program Test4;
 
-{utilizar comentario nao fechado para ver se o erro está sendo capturado}
+var A, R, B, VASCO, C : integer;
+
+procedure I();
+var A, B, ola: real;
+begin 
+end;
+
+procedure J();
+var A, B, ola: real;
+begin 
+    B:=10;
+end;
+    
+
+
+begin
+    while (I <= 5) do
+
+    begin
+        A := VASCO+1;
+        I(A, B, C, 303);
+        I := 5;
+
+    end;
+
+    begin
+        A := VASCO+1;
+        I(A, B, C, 303);
+        I := 5;
+    end;
+
+end. 

@@ -1,20 +1,31 @@
 program Test4;
 var
-    A, R, BC, I : integer;
-    O, U: real;
-    V, OLA: boolean;
+   A, B, R, I : integer;
 
-procedure OLA();
-var A: integer;
-begin end;
+procedure teste (A:integer; B:real);
+var
+   S,X: real;
+begin
+   S := A + B * X + 4 / 4;
+end; {verifique se é necessário um ";" no fechamento de um procedimento}
 
 begin
-    while (I <= 5) do
-    begin
-        TESTE();
+   while (I <= 5) do
 
-        A := A+1;
+   begin
+      A := A+1;
+      B := B-1;
+      R := A + B;
+      I := I + 1;
+   end;
 
-        A := (C + A + UI + 1/21) + I(A, B, C +A, 303);
-    end
+   begin
+      A := A+1;
+      B := B-1;
+      R := A + B;
+      I := I + 1;
+   end;
+
 end.
+
+{retirar algumas palavras reservadas para gerar erros sintáticos}

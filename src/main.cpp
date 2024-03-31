@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
       std::cout << "Programa incorreto" << std::endl;
     }
   } catch (...) {
-    std::cout << "Programa incorreto" << std::endl;
+    std::cout << "Programa incorreto by crash" << std::endl;
   }
 
   // sintatico.saveToFile("out.txt");

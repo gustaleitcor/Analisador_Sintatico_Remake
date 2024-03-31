@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -27,12 +28,20 @@ struct Token {
   unsigned long line;
 };
 
+struct Variable {
+  Token token;
+  size_t scope;
+};
+
 class Sintatico {
 public:
   std::vector<Token> tokens;
   bool analyse();
   void saveToFile(std::string);
   TOKEN_ITERATOR token;
+
+  std::vector<Variable> stack;
+  size_t scope;
 
   void next();
   Token peek();
@@ -67,6 +76,10 @@ public:
   bool expression_list2();
   bool else_part();
   bool procedure_activation();
+
+  bool checkInScope(Variable comp, size_t scope);
+  bool checkIfExists(Variable var);
+  void removeScope(size_t scope);
 };
 
 Type stringToType(std::string s);

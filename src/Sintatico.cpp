@@ -21,15 +21,68 @@ Token Sintatico::peek() {
   return *(token + 1);
 }
 
+// Coisas do semântico
+
+bool Sintatico::checkInScope(Variable comp, size_t scope) {
+  // std::cout << stack.size() << std::endl;
+
+  for (auto var : stack) {
+    if (var.scope == scope && comp.token.name == var.token.name) {
+      std::cout << "variable " << comp.token.name
+                << " alredy declared. line: " << comp.token.line << std::endl;
+      return true;
+    }
+  }
+  std::cout << comp.scope << ' ' << comp.token.name << std::endl;
+
+  return false;
+}
+
+bool Sintatico::checkIfExists(Variable var) {
+  for (auto stack_var : stack) {
+    if (stack_var.token.name == var.token.name &&
+        stack_var.scope <= var.scope) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Sintatico::removeScope(size_t scope) {
+  for (int i = stack.size() - 1; i >= 0; i--) {
+    if (stack[i].scope >= scope) {
+      stack.pop_back();
+    }
+  }
+}
+
+// Sintatico
+
 bool Sintatico::analyse() {
   token = this->tokens.begin();
-  return this->program();
+  scope = 0;
+  bool result = this->program();
+
+  std::cout << "end fo analisis" << std::endl;
+
+  for (auto var : stack) {
+    std::cout << var.scope << ' ' << var.token.name << std::endl;
+  }
+
+  return result;
 };
 
 bool Sintatico::program() {
   if (token->name == "program") {
     next();
     if (token->type == Type::IDENTIFIER) {
+
+      if (!checkInScope({*token, scope}, scope)) {
+        stack.push_back({*token, scope});
+      } else {
+        return false; // Variable alredy declared
+      }
+
       next();
       if (token->name == ";") {
 
@@ -43,9 +96,14 @@ bool Sintatico::program() {
 
         next();
 
+        scope++;
+
         if (compost_command()) {
           next();
           if (token->name == ".") {
+            std::cout << "fim" << std::endl;
+            scope--;
+            removeScope(scope);
             return true;
           } else {
             return false; // Expected '.'
@@ -109,6 +167,7 @@ bool Sintatico::variable_declaration_list() {
 bool Sintatico::variable_declaration_list2() {
   if (peek().type == Type::IDENTIFIER) {
     next();
+
     if (identifiers_list()) {
       next();
       if (token->name == ":") {
@@ -136,6 +195,13 @@ bool Sintatico::variable_declaration_list2() {
 
 bool Sintatico::identifiers_list() {
   if (token->type == Type::IDENTIFIER) {
+
+    if (!checkInScope({*token, scope}, scope)) {
+      stack.push_back({*token, scope});
+    } else {
+      return false; // Variable alredy declared
+    }
+
     return identifiers_list2();
   }
 
@@ -148,6 +214,13 @@ bool Sintatico::identifiers_list2() {
     if (token->name == ",") {
       next();
       if (token->type == Type::IDENTIFIER) {
+
+        if (!checkInScope({*token, scope}, scope)) {
+          stack.push_back({*token, scope});
+        } else {
+          return false; // Variable alredy declared
+        }
+
         return identifiers_list2();
       } else {
         return false; // Expected IDENTIFIER
@@ -196,8 +269,15 @@ bool Sintatico::subprograms_declarations() {
 bool Sintatico::subprogram_declaration() {
   if (token->name == "procedure") {
     next();
-
     if (token->type == Type::IDENTIFIER) {
+
+      if (!checkInScope({*token, scope}, scope)) {
+        stack.push_back({*token, scope});
+      } else {
+        return false; // Variable alredy declared
+      }
+
+      scope++;
 
       arguments();
 
@@ -216,6 +296,8 @@ bool Sintatico::subprogram_declaration() {
         next();
 
         if (compost_command()) {
+          removeScope(scope);
+          scope--;
           return true;
         } else {
           return false; // compost_command FAILED
@@ -332,7 +414,6 @@ bool Sintatico::optinals_command() {
 
 bool Sintatico::command_list() {
   if (command()) {
-    std::cout << "debug " << token->name << std::endl;
     return command_list2();
   } else {
     return false; // command FAILED
@@ -342,6 +423,7 @@ bool Sintatico::command_list() {
 }
 
 bool Sintatico::command_list2() {
+
   if (peek().name == ";") {
     next();
     if (token->name == ";") {
@@ -367,6 +449,10 @@ bool Sintatico::command_list2() {
 bool Sintatico::command() {
 
   if (token->type == Type::IDENTIFIER) {
+    if (!checkIfExists({*token, scope})) {
+      return false; // Variable does not exists
+    }
+
     if (peek().name == ":=") {
       next();
       if (token->name == ":=") {
@@ -387,7 +473,9 @@ bool Sintatico::command() {
   }
 
   if (token->name == "begin") {
+    scope++;
     if (compost_command()) {
+      scope--;
       return true;
     } else {
       return false; // compost_command FAILED
@@ -455,11 +543,20 @@ bool Sintatico::else_part() {
 
 bool Sintatico::procedure_activation() {
   if (token->type == Type::IDENTIFIER) {
+    if (!checkIfExists({*token, scope})) {
+      return false; // procedure does not exists
+    }
     if (peek().name == "(") {
       next();
       if (token->name == "(") {
         next();
+
+        if (token->name == ")") {
+          return true; // gambiarra
+        }
+
         if (expression_list()) {
+          next();
           if (token->name == ")") {
             return true;
           } else {
@@ -585,6 +682,9 @@ bool Sintatico::term2() {
 
 bool Sintatico::factor() {
   if (token->type == Type::IDENTIFIER) {
+    if (!checkIfExists({*token, scope})) {
+      return false; // procedure does not exists
+    }
     if (peek().name == "(") {
       next();
       if (token->name == "(") {
