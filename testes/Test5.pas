@@ -1,17 +1,21 @@
 program Hello;
-var a, v, u: integer;
-juca: real;
-b, c, juca: boolean;
+var  v, a, u: integer;
+judas: real;
+b, c,  juca: boolean;
 
 procedure olask();
-begin end;
+var h: real;
+a: boolean;
+begin 
+    h := a;
+end;
 
 
 begin
     b := 5 <= 3;
-    b := not b;
+    b := b;
     
-    if(a < juca) then
+    if(a+u < u+v and v+a > a+u) then
 
       if b then
          a:= v;

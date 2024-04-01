@@ -93,7 +93,6 @@ bool Sintatico::evaluate(std::vector<Token> line,
   }
 
   if (option == 2) { // while e if
-
     for (int j = line.size() - 3; j >= 0; j--) {
 
       if (line[j + 1].type == OPERATOR) {
@@ -104,7 +103,7 @@ bool Sintatico::evaluate(std::vector<Token> line,
         } else {
           return false;
         }
-        std::cout << typeToString(line[j + 1].type) << ' ' << j << std::endl;
+        // std::cout << typeToString(line[j + 1].type) << ' ' << j << std::endl;
 
         line.erase(line.begin() + j);
         line.erase(line.begin() + j);
@@ -115,8 +114,9 @@ bool Sintatico::evaluate(std::vector<Token> line,
 
     for (int j = line.size() - 3; j >= 0; j--) {
       if (line[j + 1].type == RELACIONAL_OPERATOR) {
-
-        if (line[j].type == REAL || line[j + 2].type == REAL) {
+        if (line[j].type == BOOLEAN || line[j + 2].type == BOOLEAN) {
+          return false;
+        } else if (line[j].type == REAL || line[j + 2].type == REAL) {
           result = BOOLEAN;
         } else if (line[j].type == INTEGER && line[j + 2].type == INTEGER) {
           result = BOOLEAN;
@@ -130,7 +130,6 @@ bool Sintatico::evaluate(std::vector<Token> line,
         line.insert(line.begin() + j, {result});
       }
     }
-
     for (int j = line.size() - 3; j >= 0; j--) {
       if (line[j + 1].type == LOGICAL_OPERATOR) {
 
@@ -209,8 +208,15 @@ bool Sintatico::evaluate(std::vector<Token> line,
     }
 
     if (line.size() == 3 && line[1].type == ASSIGN) {
-
-      return true;
+      if (line[0].type == BOOLEAN && line[2].type == BOOLEAN) {
+        return true;
+      } else if (line[0].type == REAL) {
+        if (line[2].type == INTEGER || line[2].type == REAL)
+          return true;
+      } else if (line[0].type == INTEGER && line[2].type == INTEGER) {
+        return true;
+      }
+      return false;
     } else {
       return false;
     }
@@ -305,14 +311,14 @@ bool Sintatico::program() {
       if (token->name == ";") {
 
         if (!variable_declaration()) {
-          std::cout << "variable_declaration() FAILED. Line: " << token->line
-                    << std::endl;
+          // std::cout << "variable_declaration() FAILED. Line: " << token->line
+          //           << std::endl;
           return false; // variable_declaration FAILED
         }
 
         if (!subprograms_declarations()) {
-          std::cout << "subprograms_declarations() FAILED. Line: "
-                    << token->line << std::endl;
+          // std::cout << "subprograms_declarations() FAILED. Line: "
+          //           << token->line << std::endl;
           return false; // subprograms_declarations FAILED
         }
 
@@ -332,23 +338,23 @@ bool Sintatico::program() {
             return false; // Expected '.'
           }
         } else {
-          std::cout << "compost_command() FAILED. Line: " << token->line
-                    << std::endl;
+          // std::cout << "compost_command() FAILED. Line: " << token->line
+          //           << std::endl;
           return false; // compost_command FAILED
         }
       } else {
-        std::cout << "Expected: ;. Line: " << token->line << std::endl;
+        std::cout << "Expected: ';' Line: " << (token - 1)->line << std::endl;
         return false; // Expected ';'
       }
     } else {
-      std::cout << "Expected: IDENTIFIER. Line: " << token->line << std::endl;
+      std::cout << "Expected: IDENTIFIER Line: " << token->line << std::endl;
       return false; // Expected IDENTIFIER
     }
   } else {
-    std::cout << "Expected: program. Line: " << token->line << std::endl;
+    std::cout << "Expected: 'program' Line: " << token->line << std::endl;
     return false; // Expected program
   }
-  std::cout << "program() FAILED. Line: " << token->line << std::endl;
+  // std::cout << "program() FAILED. Line: " << token->line << std::endl;
   return false;
 }
 
@@ -360,8 +366,9 @@ bool Sintatico::variable_declaration() {
       if (variable_declaration_list()) {
         return true;
       } else {
-        std::cout << "variable_declaration_list() FAILED. Line: " << token->line
-                  << std::endl;
+        // std::cout << "variable_declaration_list() FAILED. Line: " <<
+        // token->line
+        //           << std::endl;
         return false; // variable_declaration_list FAILED
       }
     }
@@ -380,24 +387,24 @@ bool Sintatico::variable_declaration_list() {
         if (token->name == ";") {
           return variable_declaration_list2();
         } else {
-          std::cout << "Expected: ;. Line: " << token->line << std::endl;
+          std::cout << "Expected: ; Line: " << (token - 1)->line << std::endl;
           return false; // Expected ';'
         }
       } else {
-        std::cout << "type() FAILED. Line: " << token->line << std::endl;
+        // std::cout << "type() FAILED. Line: " << token->line << std::endl;
         return false; // type FAILED
       }
     } else {
-      std::cout << "Expected: ;. Line: " << token->line << std::endl;
+      std::cout << "Expected: ; Line: " << (token - 1)->line << std::endl;
       return false; // Expected ';'
     }
   } else {
-    std::cout << "identifiers_list() FAILED. Line: " << token->line
-              << std::endl;
+    // std::cout << "identifiers_list() FAILED. Line: " << token->line
+    //           << std::endl;
     return false; // identifiers_list FAILED
   }
-  std::cout << "variable_declaration_list() FAILED. Line: " << token->line
-            << std::endl;
+  // std::cout << "variable_declaration_list() FAILED. Line: " << token->line
+  //           << std::endl;
   return false; // variable_declaration_list FAILED
 }
 
@@ -413,15 +420,15 @@ bool Sintatico::variable_declaration_list2() {
           if (token->name == ";") {
             return variable_declaration_list2();
           } else {
-            std::cout << "Expected: ;. Line: " << token->line << std::endl;
+            std::cout << "Expected: ; Line: " << (token - 1)->line << std::endl;
             return false; // Expected ';'
           }
         } else {
-          std::cout << "type() FAILED. Line: " << token->line << std::endl;
+          // std::cout << "type() FAILED. Line: " << token->line << std::endl;
           return false; // type FAILED
         }
       } else {
-        std::cout << "Expected: :. Line: " << token->line << std::endl;
+        std::cout << "Expected: : Line: " << token->line << std::endl;
         return false; // Expected ':'
       }
     } else {
@@ -494,7 +501,7 @@ bool Sintatico::type() {
     return true;
   }
 
-  std::cout << "type() FAILED. Line: " << token->line << std::endl;
+  // std::cout << "type() FAILED. Line: " << token->line << std::endl;
 
   return false; // type FAILED
 }
@@ -507,12 +514,12 @@ bool Sintatico::subprograms_declarations() {
       if (token->name == ";") {
         return subprograms_declarations();
       } else {
-        std::cout << "Expected: ;. Line: " << token->line << std::endl;
+        std::cout << "Expected: ; Line: " << (token - 1)->line << std::endl;
         return false; // Expected ';'
       }
     } else {
-      std::cout << "subprogram_declaration FAILED Line: " << token->line
-                << std::endl;
+      // std::cout << "subprogram_declaration FAILED Line: " << token->line
+      //           << std::endl;
       return false; // subprogram_declaration FAILED
     }
   }
@@ -542,14 +549,15 @@ bool Sintatico::subprogram_declaration() {
       if (token->name == ";") {
 
         if (!variable_declaration()) {
-          std::cout << "variable_declaration FAILED Line: " << token->line
-                    << std::endl;
+          // std::cout << "variable_declaration FAILED Line: " << token->line
+          //           << std::endl;
           return false; // variable_declaration FAILED
         }
 
         if (!subprograms_declarations()) {
-          std::cout << "subprograms_declarations FAILED Line: " << token->line
-                    << std::endl;
+          // std::cout << "subprograms_declarations FAILED Line: " <<
+          // token->line
+          //           << std::endl;
           return false; // subprograms_declarations FAILED
         }
 
@@ -560,19 +568,19 @@ bool Sintatico::subprogram_declaration() {
           scope--;
           return true;
         } else {
-          std::cout << "compost_command() FAILED. Line: " << token->line
-                    << std::endl;
+          // std::cout << "compost_command() FAILED. Line: " << token->line
+          //           << std::endl;
           return false; // compost_command FAILED
         }
       } else {
-        std::cout << "Expected: ;. Line: " << token->line << std::endl;
+        std::cout << "Expected: ; Line: " << (token - 1)->line << std::endl;
         return false; // Expected ';'
       }
     }
   }
 
-  std::cout << "subprogram_declaration() FAILED. Line: " << token->line
-            << std::endl;
+  // std::cout << "subprogram_declaration() FAILED. Line: " << token->line
+  //           << std::endl;
   return false; // subprogram_declaration FAILED
 }
 
@@ -584,7 +592,7 @@ bool Sintatico::parameters_list() {
       if (type()) {
         return parameters_list2();
       } else {
-        std::cout << "type() FAILED. Line: " << token->line << std::endl;
+        // std::cout << "type() FAILED. Line: " << token->line << std::endl;
         return false; // type FAILED
       }
     } else {
@@ -592,12 +600,13 @@ bool Sintatico::parameters_list() {
       return false; // Expected ':'
     }
   } else {
-    std::cout << "identifiers_list() FAILED. Line: " << token->line
-              << std::endl;
+    // std::cout << "identifiers_list() FAILED. Line: " << token->line
+    //           << std::endl;
     return false; // identifiers_list FAILED
   }
 
-  std::cout << "parameters_list() FAILED. Line: " << token->line << std::endl;
+  // std::cout << "parameters_list() FAILED. Line: " << token->line <<
+  // std::endl;
   return false; // parameters_list FAILED
 }
 
@@ -613,13 +622,13 @@ bool Sintatico::parameters_list2() {
           if (type()) {
             return parameters_list2();
           } else {
-            std::cout << "type() FAILED Line: " << token->line << std::endl;
+            // std::cout << "type() FAILED Line: " << token->line << std::endl;
             return false; // type FAILED
           }
         }
       } else {
-        std::cout << "identifiers_list() FAILED Line: " << token->line
-                  << std::endl;
+        // std::cout << "identifiers_list() FAILED Line: " << token->line
+        //           << std::endl;
         return false; // identifiers_list FAILED
       }
     }
@@ -642,8 +651,8 @@ bool Sintatico::arguments() {
           return false; // Expected '}'
         }
       } else {
-        std::cout << "parameters_list() FAILED. Line: " << token->line
-                  << std::endl;
+        // std::cout << "parameters_list() FAILED. Line: " << token->line
+        //           << std::endl;
         return false; // parameters_list FAILED
       }
     }
@@ -656,8 +665,8 @@ bool Sintatico::compost_command() {
   if (token->name == "begin") {
 
     if (!optinals_command()) {
-      std::cout << "optinals_command() FAILED. Line: " << token->line
-                << std::endl;
+      // std::cout << "optinals_command() FAILED. Line: " << token->line
+      //           << std::endl;
       return false; // optinals_command FAILED
     }
 
@@ -678,7 +687,7 @@ bool Sintatico::compost_command() {
     return false; // Expected 'BEGIN'
   }
 
-  std::cout << "arguments() FAILED. Line: " << token->line << std::endl;
+  // std::cout << "arguments() FAILED. Line: " << token->line << std::endl;
   return false; // arguments FAILED
 }
 
@@ -689,7 +698,8 @@ bool Sintatico::optinals_command() {
     if (command_list()) {
       return true;
     } else {
-      std::cout << "command_list() FAILED. Line: " << token->line << std::endl;
+      // std::cout << "command_list() FAILED. Line: " << token->line <<
+      // std::endl;
       return false; // command_list FAILED
     }
   }
@@ -701,11 +711,11 @@ bool Sintatico::command_list() {
   if (command()) {
     return command_list2();
   } else {
-    std::cout << "command() FAILED. Line: " << token->line << std::endl;
+    // std::cout << "command() FAILED. Line: " << token->line << std::endl;
     return false; // command FAILED
   }
 
-  std::cout << "compost_list() FAILED. Line: " << token->line << std::endl;
+  // std::cout << "compost_list() FAILED. Line: " << token->line << std::endl;
   return false; // command_list FAILED
 }
 
@@ -720,7 +730,7 @@ bool Sintatico::command_list2() {
       if (command()) {
         return command_list2();
       } else {
-        std::cout << "command() FAILED. Line: " << token->line << std::endl;
+        // std::cout << "command() FAILED. Line: " << token->line << std::endl;
         return false; // command FAILED
       }
     }
@@ -754,8 +764,8 @@ bool Sintatico::command() {
         if (expression()) {
           return true;
         } else {
-          std::cout << "expression() FAILED. Line: " << token->line
-                    << std::endl;
+          // std::cout << "expression() FAILED. Line: " << token->line
+          //           << std::endl;
           return false; // expression FAIlED
         }
       }
@@ -764,8 +774,8 @@ bool Sintatico::command() {
     if (procedure_activation()) {
       return true;
     } else {
-      std::cout << "procedure_activation() FAILED. Line: " << token->line
-                << std::endl;
+      // std::cout << "procedure_activation() FAILED. Line: " << token->line
+      //           << std::endl;
       return false; // procedure_activation FAILED
     }
   }
@@ -776,8 +786,8 @@ bool Sintatico::command() {
       scope--;
       return true;
     } else {
-      std::cout << "compost_command() FAILED. Line: " << token->line
-                << std::endl;
+      // std::cout << "compost_command() FAILED. Line: " << token->line
+      //           << std::endl;
       return false; // compost_command FAILED
     }
   }
@@ -797,7 +807,8 @@ bool Sintatico::command() {
         if (command()) {
           return else_part();
         } else {
-          std::cout << "command() FAILED. line: " << token->line << std::endl;
+          // std::cout << "command() FAILED. line: " << token->line <<
+          // std::endl;
           return false; // command FAILED
         }
       } else {
@@ -805,7 +816,7 @@ bool Sintatico::command() {
         return false; // Expected 'then'
       }
     } else {
-      std::cout << "expression() FAILED. line: " << token->line << std::endl;
+      // std::cout << "expression() FAILED. line: " << token->line << std::endl;
       return false; // expression FAILED
     }
   }
@@ -823,7 +834,8 @@ bool Sintatico::command() {
         if (command()) {
           return true;
         } else {
-          std::cout << "command() FAILED. line: " << token->line << std::endl;
+          // std::cout << "command() FAILED. line: " << token->line <<
+          // std::endl;
           return false; // command FAILED
         }
       } else {
@@ -831,11 +843,11 @@ bool Sintatico::command() {
         return false; // Expected 'do'
       }
     } else {
-      std::cout << "expression() FAILED. line: " << token->line << std::endl;
+      // std::cout << "expression() FAILED. line: " << token->line << std::endl;
       return false; // expression FAILED
     }
   }
-  std::cout << "command() FAILED. line: " << token->line << std::endl;
+  // std::cout << "command() FAILED. line: " << token->line << std::endl;
   return false; // command FAILED
 }
 
@@ -848,7 +860,7 @@ bool Sintatico::else_part() {
       if (command()) {
         return true;
       } else {
-        std::cout << "command() FAILED. line: " << token->line << std::endl;
+        // std::cout << "command() FAILED. line: " << token->line << std::endl;
         return false; // command FAILED
       }
     }
@@ -882,16 +894,16 @@ bool Sintatico::procedure_activation() {
             return false; // Expected ')'
           }
         } else {
-          std::cout << "expression_list() FAILED. line: " << token->line
-                    << std::endl;
+          // std::cout << "expression_list() FAILED. line: " << token->line
+          //           << std::endl;
           return false; // expression_list FAILED
         }
       }
     }
     return true;
   }
-  std::cout << "procedure_activation() FAILED. line: " << token->line
-            << std::endl;
+  // std::cout << "procedure_activation() FAILED. line: " << token->line
+  //           << std::endl;
   return false; // procedure_activation FAILED
 }
 
@@ -899,10 +911,11 @@ bool Sintatico::expression_list() {
   if (expression()) {
     return expression_list2();
   } else {
-    std::cout << "expression() FAILED. line: " << token->line << std::endl;
+    // std::cout << "expression() FAILED. line: " << token->line << std::endl;
     return false; // expression FAILED
   }
-  std::cout << "expression_list() FAILED. line: " << token->line << std::endl;
+  // std::cout << "expression_list() FAILED. line: " << token->line <<
+  // std::endl;
   return false; // expression_list FAILED
 }
 
@@ -914,7 +927,8 @@ bool Sintatico::expression_list2() {
       if (expression()) {
         return expression_list2();
       } else {
-        std::cout << "expression() FAILED. line: " << token->line << std::endl;
+        // std::cout << "expression() FAILED. line: " << token->line <<
+        // std::endl;
         return false; // expression FAILED
       }
     }
@@ -932,8 +946,8 @@ bool Sintatico::expression() {
         if (expression_list()) {
           return true;
         } else {
-          std::cout << "expression_list() FAILED. line: " << token->line
-                    << std::endl;
+          // std::cout << "expression_list() FAILED. line: " << token->line
+          //           << std::endl;
           return false; // expression_list FAILED
         }
       }
@@ -941,12 +955,12 @@ bool Sintatico::expression() {
 
     return true;
   } else {
-    std::cout << "simple_expression() FAILED. line: " << token->line
-              << std::endl;
+    // std::cout << "simple_expression() FAILED. line: " << token->line
+    //           << std::endl;
     return false; // simple_expression FAILED
   }
 
-  std::cout << "expression() FAILED. line: " << token->line << std::endl;
+  // std::cout << "expression() FAILED. line: " << token->line << std::endl;
   return false; // expression FAILED
 }
 
@@ -954,7 +968,7 @@ bool Sintatico::simple_expression() {
   if (term()) {
     return simple_expression2();
   } else {
-    std::cout << "term() FAILED. line: " << token->line << std::endl;
+    // std::cout << "term() FAILED. line: " << token->line << std::endl;
     return false; // term FAILED
   }
 
@@ -963,12 +977,13 @@ bool Sintatico::simple_expression() {
     if (term()) {
       return simple_expression2();
     } else {
-      std::cout << "term() FAILED. line: " << token->line << std::endl;
+      // std::cout << "term() FAILED. line: " << token->line << std::endl;
       return false; // term FAILED
     }
   }
 
-  std::cout << "simple_expression() FAILED. line: " << token->line << std::endl;
+  // std::cout << "simple_expression() FAILED. line: " << token->line <<
+  // std::endl;
 
   return false; // simple_expression FAILED
 }
@@ -981,7 +996,7 @@ bool Sintatico::simple_expression2() {
       if (term()) {
         return simple_expression2();
       } else {
-        std::cout << "term() FAILED. line: " << token->line << std::endl;
+        // std::cout << "term() FAILED. line: " << token->line << std::endl;
         return false; // term FAILED
       }
     }
@@ -994,10 +1009,10 @@ bool Sintatico::term() {
   if (factor()) {
     return term2();
   } else {
-    std::cout << "factor() FAILED. line: " << token->line << std::endl;
+    // std::cout << "factor() FAILED. line: " << token->line << std::endl;
     return false; // factor FAILED
   }
-  std::cout << "term() FAILED. line: " << token->line << std::endl;
+  // std::cout << "term() FAILED. line: " << token->line << std::endl;
   return false; // term FAILED
 }
 
@@ -1009,7 +1024,7 @@ bool Sintatico::term2() {
       if (factor()) {
         return term2();
       } else {
-        std::cout << "factor() FAILED. line: " << token->line << std::endl;
+        // std::cout << "factor() FAILED. line: " << token->line << std::endl;
         return false; // factor FAILED
       }
     }
@@ -1073,7 +1088,7 @@ bool Sintatico::factor() {
     return true;
   }
 
-  std::cout << "factor() FAILED. line: " << token->line << std::endl;
+  // std::cout << "factor() FAILED. line: " << token->line << std::endl;
   return false;
 }
 
