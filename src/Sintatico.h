@@ -80,7 +80,7 @@ public:
 
   bool checkInScope(Variable comp, size_t scope);
   bool checkIfExists(Variable var);
-  bool evaluate(std::vector<Token> line);
+  bool evaluate(std::vector<Token> line, int i);
   void removeScope(size_t scope);
   std::vector<Token> saveLine(std::string s);
   Type getType();

@@ -18,7 +18,7 @@ void Sintatico::next() {
     throw std::exception();
   }
 
-  std::cout << token->name << std::endl;
+  // std::cout << token->name << std::endl;
 }
 
 Token Sintatico::peek() {
@@ -42,7 +42,8 @@ std::vector<Token> Sintatico::saveLine(std::string s) {
   return line;
 }
 
-bool Sintatico::evaluate(std::vector<Token> line) {
+bool Sintatico::evaluate(std::vector<Token> line,
+                         int option) { // i = 1, assign i = 2, while/if
   for (int j = line.size() - 1; j >= 0; j--) {
     if ((line[j].type == Type::DELIMITER) || (line[j].type == Type::KEYWORD)) {
       if ((line[j].type == Type::KEYWORD) &&
@@ -61,16 +62,24 @@ bool Sintatico::evaluate(std::vector<Token> line) {
     }
   }
 
-  for (auto val : line) {
-    std::cout << typeToString(val.type) << ' ';
-  }
-  std::cout << std::endl;
-
   // a == b != c
   // a := b + c
   // a := INTEGER
+  // ASSIGN
+
+  // a + b != c + d
+
+  // ab != cd
+  // return false
+
+  // bool
+  // a + b
   // INTEGER
-  // (a + b) != (c + d)
+
+  // var a,b : integer;
+  // while(a + b); => while(INTEGER);
+  // while(INTEGER); != while(BOOLEAN);
+  // while(a+b == c+d)
 
   Type V1, V2, V3;
   Type result;
@@ -83,6 +92,69 @@ bool Sintatico::evaluate(std::vector<Token> line) {
     return true;
   }
 
+  if (option == 2) { // while e if
+
+    for (int j = line.size() - 3; j >= 0; j--) {
+
+      if (line[j + 1].type == OPERATOR) {
+        if (line[j].type == REAL || line[j + 2].type == REAL) {
+          result = REAL;
+        } else if (line[j].type == INTEGER && line[j + 2].type == INTEGER) {
+          result = INTEGER;
+        } else {
+          return false;
+        }
+        std::cout << typeToString(line[j + 1].type) << ' ' << j << std::endl;
+
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
+      }
+    }
+
+    for (int j = line.size() - 3; j >= 0; j--) {
+      if (line[j + 1].type == RELACIONAL_OPERATOR) {
+
+        if (line[j].type == REAL || line[j + 2].type == REAL) {
+          result = BOOLEAN;
+        } else if (line[j].type == INTEGER && line[j + 2].type == INTEGER) {
+          result = BOOLEAN;
+        } else {
+          return false;
+        }
+
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
+      }
+    }
+
+    for (int j = line.size() - 3; j >= 0; j--) {
+      if (line[j + 1].type == LOGICAL_OPERATOR) {
+
+        if (line[j].type == BOOLEAN && line[j + 2].type == BOOLEAN) {
+          result = BOOLEAN;
+        } else {
+          return false;
+        }
+
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
+      }
+    }
+
+    if (line.size() == 1 && line[0].type == BOOLEAN) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // Verifica :=
   if (line[1].type == Type::ASSIGN) {
     for (int i = line.size() - 1; i >= 2; i -= 2) {
       if (line[i - 1].type != Type::OPERATOR) {
@@ -158,7 +230,7 @@ bool Sintatico::checkInScope(Variable comp, size_t scope) {
       return true;
     }
   }
-  std::cout << comp.scope << ' ' << comp.token.name << std::endl;
+  // std::cout << comp.scope << ' ' << comp.token.name << std::endl;
 
   return false;
 }
@@ -188,11 +260,11 @@ bool Sintatico::analyse() {
   scope = 0;
   bool result = this->program();
 
-  std::cout << "end fo analisis" << std::endl;
+  // std::cout << "end fo analisis" << std::endl;
 
-  for (auto var : stack) {
-    std::cout << var.scope << ' ' << var.token.name << std::endl;
-  }
+  // for (auto var : stack) {
+  //   std::cout << var.scope << ' ' << var.token.name << std::endl;
+  // }
 
   return result;
 };
@@ -205,6 +277,8 @@ bool Sintatico::program() {
       if (!checkInScope({*token, Type::PROGRAM, scope}, scope)) {
         stack.push_back({*token, Type::PROGRAM, scope});
       } else {
+        std::cout << "Variable alredy declared. Line: " << token->line
+                  << std::endl;
         return false; // Variable alredy declared
       }
 
@@ -212,10 +286,14 @@ bool Sintatico::program() {
       if (token->name == ";") {
 
         if (!variable_declaration()) {
+          std::cout << "variable_declaration() FAILED. Line: " << token->line
+                    << std::endl;
           return false; // variable_declaration FAILED
         }
 
         if (!subprograms_declarations()) {
+          std::cout << "subprograms_declarations() FAILED. Line: "
+                    << token->line << std::endl;
           return false; // subprograms_declarations FAILED
         }
 
@@ -226,25 +304,32 @@ bool Sintatico::program() {
         if (compost_command()) {
           next();
           if (token->name == ".") {
-            std::cout << "fim" << std::endl;
+            // std::cout << "fim" << std::endl;
             scope--;
             removeScope(scope);
             return true;
           } else {
+            std::cout << "Expected: . Line: " << token->line << std::endl;
             return false; // Expected '.'
           }
         } else {
+          std::cout << "compost_command() FAILED. Line: " << token->line
+                    << std::endl;
           return false; // compost_command FAILED
         }
       } else {
+        std::cout << "Expected: ;. Line: " << token->line << std::endl;
         return false; // Expected ';'
       }
     } else {
+      std::cout << "Expected: IDENTIFIER. Line: " << token->line << std::endl;
       return false; // Expected IDENTIFIER
     }
   } else {
+    std::cout << "Expected: program. Line: " << token->line << std::endl;
     return false; // Expected program
   }
+  std::cout << "program() FAILED. Line: " << token->line << std::endl;
   return false;
 }
 
@@ -256,6 +341,8 @@ bool Sintatico::variable_declaration() {
       if (variable_declaration_list()) {
         return true;
       } else {
+        std::cout << "variable_declaration_list() FAILED. Line: " << token->line
+                  << std::endl;
         return false; // variable_declaration_list FAILED
       }
     }
@@ -274,25 +361,30 @@ bool Sintatico::variable_declaration_list() {
         if (token->name == ";") {
           return variable_declaration_list2();
         } else {
+          std::cout << "Expected: ;. Line: " << token->line << std::endl;
           return false; // Expected ';'
         }
       } else {
+        std::cout << "type() FAILED. Line: " << token->line << std::endl;
         return false; // type FAILED
       }
     } else {
+      std::cout << "Expected: ;. Line: " << token->line << std::endl;
       return false; // Expected ';'
     }
   } else {
+    std::cout << "identifiers_list() FAILED. Line: " << token->line
+              << std::endl;
     return false; // identifiers_list FAILED
   }
-
+  std::cout << "variable_declaration_list() FAILED. Line: " << token->line
+            << std::endl;
   return false; // variable_declaration_list FAILED
 }
 
 bool Sintatico::variable_declaration_list2() {
   if (peek().type == Type::IDENTIFIER) {
     next();
-
     if (identifiers_list()) {
       next();
       if (token->name == ":") {
@@ -302,15 +394,20 @@ bool Sintatico::variable_declaration_list2() {
           if (token->name == ";") {
             return variable_declaration_list2();
           } else {
+            std::cout << "Expected: ;. Line: " << token->line << std::endl;
             return false; // Expected ';'
           }
         } else {
+          std::cout << "type() FAILED. Line: " << token->line << std::endl;
           return false; // type FAILED
         }
       } else {
+        std::cout << "Expected: :. Line: " << token->line << std::endl;
         return false; // Expected ':'
       }
     } else {
+      // std::cout << "indentifiers_list() FAILED. Line: " << token->line
+      //           << std::endl;
       return false; // identifiers_list FAILED
     }
   }
@@ -324,12 +421,16 @@ bool Sintatico::identifiers_list() {
     if (!checkInScope({*token, getType(), scope}, scope)) {
       stack.push_back({*token, getType(), scope});
     } else {
+      std::cout << "Variable alredy declared. Line: " << token->line
+                << std::endl;
       return false; // Variable alredy declared
     }
 
     return identifiers_list2();
   }
 
+  // std::cout << "indentifiers_list() FAILED. Line: " << token->line <<
+  // std::endl;
   return false;
 }
 
@@ -343,14 +444,18 @@ bool Sintatico::identifiers_list2() {
         if (!checkInScope({*token, getType(), scope}, scope)) {
           stack.push_back({*token, getType(), scope});
         } else {
+          std::cout << "Variable alredy declared. Line: " << token->line
+                    << std::endl;
           return false; // Variable alredy declared
         }
 
         return identifiers_list2();
       } else {
+        std::cout << "Expected: IDENTIFIER. Line: " << token->line << std::endl;
         return false; // Expected IDENTIFIER
       }
     } else {
+      std::cout << "Expected: ,. Line: " << token->line << std::endl;
       return false; // Expected ','
     }
   }
@@ -370,6 +475,8 @@ bool Sintatico::type() {
     return true;
   }
 
+  std::cout << "type() FAILED. Line: " << token->line << std::endl;
+
   return false; // type FAILED
 }
 
@@ -381,9 +488,12 @@ bool Sintatico::subprograms_declarations() {
       if (token->name == ";") {
         return subprograms_declarations();
       } else {
+        std::cout << "Expected: ;. Line: " << token->line << std::endl;
         return false; // Expected ';'
       }
     } else {
+      std::cout << "subprogram_declaration FAILED Line: " << token->line
+                << std::endl;
       return false; // subprogram_declaration FAILED
     }
   }
@@ -399,6 +509,8 @@ bool Sintatico::subprogram_declaration() {
       if (!checkInScope({*token, Type::PROCEDURE, scope}, scope)) {
         stack.push_back({*token, Type::PROCEDURE, scope});
       } else {
+        std::cout << "Variable alredy declared. Line: " << token->line
+                  << std::endl;
         return false; // Variable alredy declared
       }
 
@@ -411,10 +523,14 @@ bool Sintatico::subprogram_declaration() {
       if (token->name == ";") {
 
         if (!variable_declaration()) {
+          std::cout << "variable_declaration FAILED Line: " << token->line
+                    << std::endl;
           return false; // variable_declaration FAILED
         }
 
         if (!subprograms_declarations()) {
+          std::cout << "subprograms_declarations FAILED Line: " << token->line
+                    << std::endl;
           return false; // subprograms_declarations FAILED
         }
 
@@ -425,14 +541,19 @@ bool Sintatico::subprogram_declaration() {
           scope--;
           return true;
         } else {
+          std::cout << "compost_command() FAILED. Line: " << token->line
+                    << std::endl;
           return false; // compost_command FAILED
         }
       } else {
-        return false; // Esxpected ';'
+        std::cout << "Expected: ;. Line: " << token->line << std::endl;
+        return false; // Expected ';'
       }
     }
   }
 
+  std::cout << "subprogram_declaration() FAILED. Line: " << token->line
+            << std::endl;
   return false; // subprogram_declaration FAILED
 }
 
@@ -444,15 +565,20 @@ bool Sintatico::parameters_list() {
       if (type()) {
         return parameters_list2();
       } else {
+        std::cout << "type() FAILED. Line: " << token->line << std::endl;
         return false; // type FAILED
       }
     } else {
+      std::cout << "Expected: :. Line: " << token->line << std::endl;
       return false; // Expected ':'
     }
   } else {
+    std::cout << "identifiers_list() FAILED. Line: " << token->line
+              << std::endl;
     return false; // identifiers_list FAILED
   }
 
+  std::cout << "parameters_list() FAILED. Line: " << token->line << std::endl;
   return false; // parameters_list FAILED
 }
 
@@ -469,10 +595,13 @@ bool Sintatico::parameters_list2() {
           if (type()) {
             return parameters_list2();
           } else {
+            std::cout << "type() FAILED Line: " << token->line << std::endl;
             return false; // type FAILED
           }
         }
       } else {
+        std::cout << "identifiers_list() FAILED Line: " << token->line
+                  << std::endl;
         return false; // identifiers_list FAILED
       }
     }
@@ -491,9 +620,12 @@ bool Sintatico::arguments() {
         if (token->name == ")") {
           return true;
         } else {
+          std::cout << "Expected: }. Line: " << token->line << std::endl;
           return false; // Expected '}'
         }
       } else {
+        std::cout << "parameters_list() FAILED. Line: " << token->line
+                  << std::endl;
         return false; // parameters_list FAILED
       }
     }
@@ -506,20 +638,31 @@ bool Sintatico::compost_command() {
   if (token->name == "begin") {
 
     if (!optinals_command()) {
+      std::cout << "optinals_command() FAILED. Line: " << token->line
+                << std::endl;
       return false; // optinals_command FAILED
     }
 
     next();
 
-    if (token->name == "end") {
+    if ((token - 1)->name == "end") {
+      token--;
+    }
+
+    std::cout << "debuga!" << token->name << std::endl;
+
+    if (token->name == "end") { // gambiarra
       return true;
     } else {
+      std::cout << "Expected: end. Line: " << token->line << std::endl;
       return false; // Expected 'END'
     }
   } else {
+    std::cout << "Expected: begin. Line: " << token->line << std::endl;
     return false; // Expected 'BEGIN'
   }
 
+  std::cout << "arguments() FAILED. Line: " << token->line << std::endl;
   return false; // arguments FAILED
 }
 
@@ -530,6 +673,7 @@ bool Sintatico::optinals_command() {
     if (command_list()) {
       return true;
     } else {
+      std::cout << "command_list() FAILED. Line: " << token->line << std::endl;
       return false; // command_list FAILED
     }
   }
@@ -541,9 +685,11 @@ bool Sintatico::command_list() {
   if (command()) {
     return command_list2();
   } else {
+    std::cout << "command() FAILED. Line: " << token->line << std::endl;
     return false; // command FAILED
   }
 
+  std::cout << "compost_list() FAILED. Line: " << token->line << std::endl;
   return false; // command_list FAILED
 }
 
@@ -559,6 +705,7 @@ bool Sintatico::command_list2() {
       if (command()) {
         return command_list2();
       } else {
+        std::cout << "command() FAILED. Line: " << token->line << std::endl;
         return false; // command FAILED
       }
     }
@@ -575,11 +722,14 @@ bool Sintatico::command() {
 
   if (token->type == Type::IDENTIFIER) {
 
-    if (!evaluate(saveLine(";"))) {
+    if (!evaluate(saveLine(";"), 1)) {
+      std::cout << "Tipo conflitante. Line: " << token->line << std::endl;
       return false; // Expression not correct
     }
 
     if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
+      std::cout << "variable does not exists. Line: " << token->line
+                << std::endl;
       return false; // Variable does not exists
     }
 
@@ -590,6 +740,8 @@ bool Sintatico::command() {
         if (expression()) {
           return true;
         } else {
+          std::cout << "expression() FAILED. Line: " << token->line
+                    << std::endl;
           return false; // expression FAIlED
         }
       }
@@ -598,6 +750,8 @@ bool Sintatico::command() {
     if (procedure_activation()) {
       return true;
     } else {
+      std::cout << "procedure_activation() FAILED. Line: " << token->line
+                << std::endl;
       return false; // procedure_activation FAILED
     }
   }
@@ -608,12 +762,20 @@ bool Sintatico::command() {
       scope--;
       return true;
     } else {
+      std::cout << "compost_command() FAILED. Line: " << token->line
+                << std::endl;
       return false; // compost_command FAILED
     }
   }
 
   if (token->name == "if") {
     next();
+
+    if (!evaluate(saveLine("then"), 2)) {
+      std::cout << "Tipo conflitante. Line: " << token->line << std::endl;
+      return false;
+    }
+
     if (expression()) {
       next();
       if (token->name == "then") {
@@ -621,18 +783,25 @@ bool Sintatico::command() {
         if (command()) {
           return else_part();
         } else {
+          std::cout << "command() FAILED. line: " << token->line << std::endl;
           return false; // command FAILED
         }
       } else {
+        std::cout << "Expected 'then'. line: " << token->line << std::endl;
         return false; // Expected 'then'
       }
     } else {
+      std::cout << "expression() FAILED. line: " << token->line << std::endl;
       return false; // expression FAILED
     }
   }
 
   if (token->name == "while") {
     next();
+    if (!evaluate(saveLine("do"), 2)) {
+      std::cout << "tipo conflitante line: " << token->line << std::endl;
+      return false;
+    }
     if (expression()) {
       next();
       if (token->name == "do") {
@@ -640,29 +809,32 @@ bool Sintatico::command() {
         if (command()) {
           return true;
         } else {
+          std::cout << "command() FAILED. line: " << token->line << std::endl;
           return false; // command FAILED
         }
       } else {
+        std::cout << "Expected 'do' line: " << token->line << std::endl;
         return false; // Expected 'do'
       }
     } else {
+      std::cout << "expression() FAILED. line: " << token->line << std::endl;
       return false; // expression FAILED
     }
   }
-
+  std::cout << "command() FAILED. line: " << token->line << std::endl;
   return false; // command FAILED
 }
 
 bool Sintatico::else_part() {
-  if (peek().name == ";") // gambiarra
+  if ((token + 2)->name == "else") {
     next();
-  if (peek().name == "else") {
     next();
     if (token->name == "else") {
       next();
       if (command()) {
         return true;
       } else {
+        std::cout << "command() FAILED. line: " << token->line << std::endl;
         return false; // command FAILED
       }
     }
@@ -674,6 +846,8 @@ bool Sintatico::else_part() {
 bool Sintatico::procedure_activation() {
   if (token->type == Type::IDENTIFIER) {
     if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
+      std::cout << "procedure does not exists. line: " << token->line
+                << std::endl;
       return false; // procedure does not exists
     }
     if (peek().name == "(") {
@@ -690,15 +864,20 @@ bool Sintatico::procedure_activation() {
           if (token->name == ")") {
             return true;
           } else {
+            std::cout << "Expected ')'. line: " << token->line << std::endl;
             return false; // Expected ')'
           }
         } else {
+          std::cout << "expression_list() FAILED. line: " << token->line
+                    << std::endl;
           return false; // expression_list FAILED
         }
       }
     }
     return true;
   }
+  std::cout << "procedure_activation() FAILED. line: " << token->line
+            << std::endl;
   return false; // procedure_activation FAILED
 }
 
@@ -706,8 +885,10 @@ bool Sintatico::expression_list() {
   if (expression()) {
     return expression_list2();
   } else {
+    std::cout << "expression() FAILED. line: " << token->line << std::endl;
     return false; // expression FAILED
   }
+  std::cout << "expression_list() FAILED. line: " << token->line << std::endl;
   return false; // expression_list FAILED
 }
 
@@ -719,6 +900,7 @@ bool Sintatico::expression_list2() {
       if (expression()) {
         return expression_list2();
       } else {
+        std::cout << "expression() FAILED. line: " << token->line << std::endl;
         return false; // expression FAILED
       }
     }
@@ -736,6 +918,8 @@ bool Sintatico::expression() {
         if (expression_list()) {
           return true;
         } else {
+          std::cout << "expression_list() FAILED. line: " << token->line
+                    << std::endl;
           return false; // expression_list FAILED
         }
       }
@@ -743,9 +927,12 @@ bool Sintatico::expression() {
 
     return true;
   } else {
+    std::cout << "simple_expression() FAILED. line: " << token->line
+              << std::endl;
     return false; // simple_expression FAILED
   }
 
+  std::cout << "expression() FAILED. line: " << token->line << std::endl;
   return false; // expression FAILED
 }
 
@@ -753,17 +940,21 @@ bool Sintatico::simple_expression() {
   if (term()) {
     return simple_expression2();
   } else {
+    std::cout << "term() FAILED. line: " << token->line << std::endl;
     return false; // term FAILED
   }
 
-  if (token->name == "+" || token->name == "-" || token->name == "and") {
+  if (token->name == "+" || token->name == "-" || token->name == "or") {
     next();
     if (term()) {
       return simple_expression2();
     } else {
+      std::cout << "term() FAILED. line: " << token->line << std::endl;
       return false; // term FAILED
     }
   }
+
+  std::cout << "simple_expression() FAILED. line: " << token->line << std::endl;
 
   return false; // simple_expression FAILED
 }
@@ -776,6 +967,7 @@ bool Sintatico::simple_expression2() {
       if (term()) {
         return simple_expression2();
       } else {
+        std::cout << "term() FAILED. line: " << token->line << std::endl;
         return false; // term FAILED
       }
     }
@@ -788,20 +980,23 @@ bool Sintatico::term() {
   if (factor()) {
     return term2();
   } else {
+    std::cout << "factor() FAILED. line: " << token->line << std::endl;
     return false; // factor FAILED
   }
+  std::cout << "term() FAILED. line: " << token->line << std::endl;
   return false; // term FAILED
 }
 
 bool Sintatico::term2() {
 
-  if (peek().name == "*" || peek().name == "/" || peek().name == "or") {
+  if (peek().name == "*" || peek().name == "/" || peek().name == "and") {
     next();
-    if (token->name == "*" || token->name == "/" || token->name == "or") {
+    if (token->name == "*" || token->name == "/" || token->name == "and") {
       next();
       if (factor()) {
         return term2();
       } else {
+        std::cout << "factor() FAILED. line: " << token->line << std::endl;
         return false; // factor FAILED
       }
     }
@@ -813,6 +1008,8 @@ bool Sintatico::term2() {
 bool Sintatico::factor() {
   if (token->type == Type::IDENTIFIER) {
     if (!checkIfExists({*token, Type::IDENTIFIER, scope})) {
+      std::cout << "variable does not exists. line: " << token->line
+                << std::endl;
       return false; // procedure does not exists
     }
     if (peek().name == "(") {
@@ -863,6 +1060,7 @@ bool Sintatico::factor() {
     return true;
   }
 
+  std::cout << "factor() FAILED. line: " << token->line << std::endl;
   return false;
 }
 

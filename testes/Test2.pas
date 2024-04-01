@@ -8,8 +8,15 @@ begin
    begin
       X := (A);
       A := B;
-      B := X;   {veja que o �ltimo comando de um bloco n�o possui o ;}
-   end         {alguns alunos preferem implementar com ;}
+      B := X;   
+   end;
+   else 
+   begin
+   end;
+   
+    {alguns alunos preferem implementar com ;}
+    {veja que o �ltimo comando de um bloco n�o possui o ;}
+
 end.	       
 
 {gere erros sint�ticos}

@@ -1,11 +1,12 @@
 program Test4;
 var
-   A, B, R, I : integer;
+   A, B, R, I, a1, a2, a3: integer;
+   x, x1: boolean;
 
 procedure teste (A:integer; B:real);
 var
    S,X: integer; 
-   y: boolean;
+   y, y1, y2: boolean;
 begin
    S := A + B + X + 4 / 4;
    y := not y;
@@ -13,7 +14,7 @@ begin
 end; {verifique se é necessário um ";" no fechamento de um procedimento}
 
 begin
-   while (I <= 5) do
+   while (x and x1) do
 
    begin
       A := A+1;

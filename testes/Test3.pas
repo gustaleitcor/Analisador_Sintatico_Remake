@@ -2,12 +2,12 @@ program Test4;
 
 var A, R, B, VASCO, C : integer;
 
-procedure I();
+procedure I;
 var A, B, ola: real;
 begin 
 end;
 
-procedure J();
+procedure J;
 var A, B, ola: real;
 begin 
     B:=10;
@@ -16,7 +16,7 @@ end;
 
 
 begin
-    while (I <= 5) do
+    if (I <= 5) then
 
     begin
         A := VASCO+1;
