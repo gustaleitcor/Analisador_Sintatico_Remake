@@ -10,7 +10,7 @@ end;
 procedure J;
 var A, B, ola: real;
 begin 
-    B:=10;
+    B:=10.5;
 end;
     
 

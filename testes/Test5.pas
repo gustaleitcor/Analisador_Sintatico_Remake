@@ -3,17 +3,16 @@ var  v, a, u: integer;
 judas: real;
 b, c,  juca: boolean;
 
-procedure olask();
-var h: real;
-a: boolean;
-begin 
-    h := a;
+procedure olask(); 
+var a: real;
+begin
+a := 5.0;
 end;
-
 
 begin
     b := 5 <= 3;
     b := b;
+    a := 5;
     
     if(a+u < u+v and v+a > a+u) then
 

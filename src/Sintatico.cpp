@@ -44,6 +44,7 @@ std::vector<Token> Sintatico::saveLine(std::string s) {
 
 bool Sintatico::evaluate(std::vector<Token> line,
                          int option) { // i = 1, assign i = 2, while/if
+
   for (int j = line.size() - 1; j >= 0; j--) {
     if ((line[j].type == Type::DELIMITER) || (line[j].type == Type::KEYWORD)) {
       if ((line[j].type == Type::KEYWORD) &&
@@ -57,7 +58,13 @@ bool Sintatico::evaluate(std::vector<Token> line,
       for (int i = stack.size() - 1; i >= 0; i--) {
         if (stack[i].token.name == line[j].name) {
           line[j].type = stack[i].semantic_type;
+          break;
         }
+      }
+      if (line[j].type == Type::IDENTIFIER) {
+        std::cout << "variable '" << line[j].name
+                  << "' does not exists Line: " << line[j].line << std::endl;
+        return false;
       }
     }
   }
@@ -156,6 +163,16 @@ bool Sintatico::evaluate(std::vector<Token> line,
   // Verifica :=
   if (option == 1) {
     for (int j = line.size() - 3; j >= 0; j--) {
+
+      // for (auto var : line) {
+      //   std::cout << var.name << ' ';
+      // }
+      // std::cout << std::endl;
+
+      // for (auto var : line) {
+      //   std::cout << typeToString(var.type) << ' ';
+      // }
+      // std::cout << std::endl;
 
       if (line[j + 1].type == OPERATOR) {
         if (line[j].type == REAL || line[j + 2].type == REAL) {

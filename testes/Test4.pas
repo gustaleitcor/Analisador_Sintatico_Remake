@@ -3,7 +3,7 @@ var
    A, B, R, I, a1, a2, a3: integer;
    x, x1: boolean;
 
-procedure teste (A:integer; B:real);
+procedure teste (A:integer);
 var
    S,X: integer; 
    y, y1, y2: boolean;
