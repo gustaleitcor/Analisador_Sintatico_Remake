@@ -155,38 +155,61 @@ bool Sintatico::evaluate(std::vector<Token> line,
   }
 
   // Verifica :=
-  if (line[1].type == Type::ASSIGN) {
-    for (int i = line.size() - 1; i >= 2; i -= 2) {
-      if (line[i - 1].type != Type::OPERATOR) {
-        if (line[i - 1].type == Type::ASSIGN) {
-          break;
+  if (option == 1) {
+    for (int j = line.size() - 3; j >= 0; j--) {
+
+      if (line[j + 1].type == OPERATOR) {
+        if (line[j].type == REAL || line[j + 2].type == REAL) {
+          result = REAL;
+        } else if (line[j].type == INTEGER && line[j + 2].type == INTEGER) {
+          result = INTEGER;
+        } else {
+          return false;
         }
-        return false;
-      }
-      V1 = line[i].type;
-      V2 = line[i - 2].type;
-      line.pop_back();
-      line.pop_back();
-      line.pop_back();
 
-      if (V1 == REAL || V2 == REAL) {
-        result = REAL;
-      } else if (V1 == INTEGER && V2 == INTEGER) {
-        result = INTEGER;
-      } else {
-        return false;
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
       }
-
-      line.push_back({result});
     }
 
-    if (line[0].type == REAL && line[2].type == INTEGER) {
-      return true;
-    } else if (line[0].type == INTEGER && line[2].type == INTEGER) {
-      return true;
-    } else if (line[0].type == REAL && line[2].type == REAL) {
-      return true;
-    } else if (line[0].type == BOOLEAN && line[2].type == BOOLEAN) {
+    for (int j = line.size() - 3; j >= 0; j--) {
+      if (line[j + 1].type == RELACIONAL_OPERATOR) {
+
+        if (line[j].type == REAL || line[j + 2].type == REAL) {
+          result = BOOLEAN;
+        } else if (line[j].type == INTEGER && line[j + 2].type == INTEGER) {
+          result = BOOLEAN;
+        } else {
+          return false;
+        }
+
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
+      }
+    }
+
+    for (int j = line.size() - 3; j >= 0; j--) {
+      if (line[j + 1].type == LOGICAL_OPERATOR) {
+
+        if (line[j].type == BOOLEAN && line[j + 2].type == BOOLEAN) {
+          result = BOOLEAN;
+        } else {
+          return false;
+        }
+
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.erase(line.begin() + j);
+        line.insert(line.begin() + j, {result});
+      }
+    }
+
+    if (line.size() == 3 && line[1].type == ASSIGN) {
+
       return true;
     } else {
       return false;
@@ -258,13 +281,9 @@ void Sintatico::removeScope(size_t scope) {
 bool Sintatico::analyse() {
   token = this->tokens.begin();
   scope = 0;
+  stack.push_back({{Type::BOOLEAN, "true", 0}, Type::BOOLEAN, 0});
+  stack.push_back({{Type::BOOLEAN, "false", 0}, Type::BOOLEAN, 0});
   bool result = this->program();
-
-  // std::cout << "end fo analisis" << std::endl;
-
-  // for (auto var : stack) {
-  //   std::cout << var.scope << ' ' << var.token.name << std::endl;
-  // }
 
   return result;
 };
@@ -583,7 +602,6 @@ bool Sintatico::parameters_list() {
 }
 
 bool Sintatico::parameters_list2() {
-
   if (peek().name == ";") {
     next();
     if (token->name == ";") {
@@ -649,8 +667,6 @@ bool Sintatico::compost_command() {
       token--;
     }
 
-    std::cout << "debuga!" << token->name << std::endl;
-
     if (token->name == "end") { // gambiarra
       return true;
     } else {
@@ -694,7 +710,6 @@ bool Sintatico::command_list() {
 }
 
 bool Sintatico::command_list2() {
-
   if (peek().name == ";") {
     next();
     if (token->name == ";") {
@@ -719,7 +734,6 @@ bool Sintatico::command_list2() {
 }
 
 bool Sintatico::command() {
-
   if (token->type == Type::IDENTIFIER) {
 
     if (!evaluate(saveLine(";"), 1)) {
@@ -988,7 +1002,6 @@ bool Sintatico::term() {
 }
 
 bool Sintatico::term2() {
-
   if (peek().name == "*" || peek().name == "/" || peek().name == "and") {
     next();
     if (token->name == "*" || token->name == "/" || token->name == "and") {
@@ -1096,7 +1109,6 @@ Type stringToType(std::string s) {
 }
 
 std::string typeToString(Type t) {
-
   if (t == Type::REAL) {
     return "REAL";
   } else if (t == Type::INTEGER) {
@@ -1126,3 +1138,16 @@ std::string typeToString(Type t) {
   }
   throw std::exception();
 }
+
+// throw std::exception();
+// }
+// ESSION ";
+// }
+// else if (t == Type::PROGRAM) {
+//   return "PROGRAM";
+// }
+// else if (t == Type::PROCEDURE) {
+//   return "PROCEDURE";
+// }
+// throw std::exception();
+// }
