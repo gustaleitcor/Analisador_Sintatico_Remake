@@ -1,0 +1,4 @@
+[submodule "Analisador_Lexico_Regex"]
+	path = Analisador_Lexico_Regex
+	url = ../../gustaleitcor/Analisador_Lexico_Regex
+	branch = main

@@ -2,7 +2,7 @@ program Test2;
 var
    X, A, B: integer;
 begin
-   A := 5 + 7 + 8;
+   A := 5 + (7 + 8);
    B := 10;
    if (A > B) then
    begin

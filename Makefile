@@ -1,30 +1,21 @@
-CXX=g++
-CXXFLAGS=-std=c++11
-SRCDIR=src
-OBJDIR=obj
-TESTDIR=testes
-ANALYSEDDIR=analysed
+# Compiler (modify if needed)
+CXX = g++
 
-SRC=$(wildcard $(SRCDIR)/*.cpp)
-OBJ=$(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
+# C++ source file extension (modify if needed)
+CXX_FLAGS = -Wall -Wextra -w -g  # Enable warnings and debugging symbols
+CXX_OBJS = $(wildcard Analisador_Lexico_Regex/*.cpp)  # Source files in Analisador_Lexico_Regex
+SRC_OBJS = $(wildcard src/*.cpp)  # Source files in src
 
-main: $(OBJ)
-	$(CXX) -o $@ $^
+# All targets (for clarity)
+.PHONY: all clean lexico analyse
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@mkdir -p $(OBJDIR)
-	$(CXX) -c -o $@ $<
+all: lexico analyse  # Build both executables
 
-analyse: $(ANALYSEDDIR)
-	for file in $(TESTDIR)/*; do \
-		base=$$(basename $$file); \
-		base_no_ext=$${base%.*}; \
-		./analyse $$file $(ANALYSEDDIR)/$${base_no_ext}.txt; \
-	done
+lexico: $(CXX_OBJS)
+	$(CXX) $(CXX_FLAGS) -o lexico $^
 
-$(ANALYSEDDIR):
-	@mkdir -p $(ANALYSEDDIR)
+analyse: $(SRC_OBJS)
+	$(CXX) $(CXX_FLAGS) -o analyse $^
 
-.PHONY: clean
 clean:
-	rm -rf $(OBJDIR) main $(ANALYSEDDIR)
+	rm -f *.o lexico analyse  # Remove object files and executables

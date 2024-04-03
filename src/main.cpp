@@ -1,4 +1,5 @@
 #include "./Sintatico.h"
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -9,8 +10,30 @@ int main(int argc, char *argv[]) {
 
   std::string token, type, line_str;
   unsigned long line_ul;
-  std::ifstream input_file(argv[1]);
   Sintatico sintatico;
+
+  if (argc < 2) {
+    std::cout << "format: ./analyse <arquivo de teste>" << std::endl;
+    return -1;
+  }
+
+  int result = system(
+      (std::string("./Analisador_Lexico_Regex/analyse") + " ./" + argv[1])
+          .c_str());
+
+  if (result == -1) {
+    std::cerr << "ERROR: lexic FAILED" << std::endl;
+    std::cout << "Lexico falhou" << std::endl;
+  }
+
+  std::ifstream input_file("./a.txt");
+
+  if (!input_file) {
+    std::cerr << "ERROR: Could not open file" << std::endl;
+    std::cout << "Não foi possivel abrir o arquivo gerado pelo lexico "
+              << argv[1] << "\nTente novamente" << std::endl;
+    return -1;
+  }
 
   while (input_file >> type) {
     input_file >> token;
